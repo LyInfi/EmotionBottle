@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>我的成就 - 情绪记录</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .achievement-card {
+                @apply bg-white rounded-lg shadow-sm p-6 transition-all duration-300 hover:shadow-md;
+            }
+            .achievement-card.unlocked {
+                @apply border-2 border-green-500 bg-green-50;
+            }
+            .achievement-card.locked {
+                @apply opacity-75;
+            }
+            .progress-bar {
+                @apply w-full bg-gray-200 rounded-full h-2;
+            }
+            .progress-fill {
+                @apply bg-green-500 h-2 rounded-full transition-all duration-300;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <!-- 顶部导航 -->
+    <div class="bg-white shadow-sm">
+        <div class="max-w-4xl mx-auto px-4 py-4">
+            <div class="flex items-center">
+                <a href="history.html" class="text-gray-600 hover:text-gray-800 mr-4">
+                    <i class="fas fa-arrow-left"></i>
+                </a>
+                <h1 class="text-xl font-semibold text-gray-800">我的成就</h1>
+            </div>
+        </div>
+    </div>
+
+    <!-- 成就统计 -->
+    <div class="max-w-4xl mx-auto px-4 py-6">
+        <div class="bg-white rounded-lg shadow-sm p-6 mb-6">
+            <h2 class="text-lg font-semibold text-gray-800 mb-4">成就进度</h2>
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-2xl font-bold text-indigo-600" id="unlocked-count">0</p>
+                    <p class="text-sm text-gray-600">已解锁成就</p>
+                </div>
+                <div class="text-right">
+                    <p class="text-2xl font-bold text-gray-400">10</p>
+                    <p class="text-sm text-gray-600">总成就数</p>
+                </div>
+            </div>
+            <div class="mt-4">
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progress-fill" style="width: 0%"></div>
+                </div>
+                <p class="text-sm text-gray-600 mt-2" id="progress-text">0% 完成</p>
+            </div>
+        </div>
+
+        <!-- 成就列表 -->
+        <div class="space-y-4">
+            <!-- 情绪启蒙 -->
+            <div class="achievement-card" data-achievement="emotion-novice">
+                <div class="flex items-start space-x-4">
+                    <div class="w-16 h-16 rounded-full bg-indigo-100 flex items-center justify-center text-2xl text-indigo-600">
+                        <i class="fas fa-seedling"></i>
+                    </div>
+                    <div class="flex-1">
+                        <h3 class="text-lg font-semibold text-gray-800">情绪启蒙</h3>
+                        <p class="text-sm text-gray-600 mt-1">开始记录你的第一个情绪</p>
+                        <div class="mt-2">
+                            <div class="flex items-center justify-between text-sm">
+                                <span class="text-gray-500">进度</span>
+                                <span id="progress-novice">0/1</span>
+                            </div>
+                            <div class="progress-bar mt-1">
+                                <div class="progress-fill" id="fill-novice" style="width: 0%"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <div class="text-2xl text-gray-400" id="status-novice">
+                            <i class="fas fa-lock"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 瓶满则溢 -->
+            <div class="achievement-card" data-achievement="bottle-collector">
+                <div class="flex items-start space-x-4">
+                    <div class="w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center text-2xl text-blue-600">
+                        <i class="fas fa-tint"></i>
+                    </div>
+                    <div class="flex-1">
+                        <h3 class="text-lg font-semibold text-gray-800">瓶满则溢</h3>
+                        <p class="text-sm text-gray-600 mt-1">完成你的第一个情绪瓶子</p>
+                        <div class="mt-2">
+                            <div class="flex items-center justify-between text-sm">
+                                <span class="text-gray-500">进度</span>
+                                <span id="progress-bottle">0/1</span>
+                            </div>
+                            <div class="progress-bar mt-1">
+                                <div class="progress-fill" id="fill-bottle" style="width: 0%"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <div class="text-2xl text-gray-400" id="status-bottle">
+                            <i class="fas fa-lock"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 坚持不懈 -->
+            <div class="achievement-card" data-achievement="consistent-recorder">
+                <div class="flex items-start space-x-4">
+                    <div class="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center text-2xl text-green-600">
+                        <i class="fas fa-calendar-check"></i>
+                    </div>
+                    <div class="flex-1">
+                        <h3 class="text-lg font-semibold text-gray-800">坚持不懈</h3>
+                        <p class="text-sm text-gray-600 mt-1">连续记录情绪3天</p>
+                        <div class="mt-2">
+                            <div class="flex items-center justify-between text-sm">
+                                <span class="text-gray-500">进度</span>
+                                <span id="progress-consistent">0/3</span>
+                            </div>
+                            <div class="progress-bar mt-1">
+                                <div class="progress-fill" id="fill-consistent" style="width: 0%"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <div class="text-2xl text-gray-400" id="status-consistent">
+                            <i class="fas fa-lock"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 情绪大师 -->
+            <div class="achievement-card" data-achievement="emotion-master">
+                <div class="flex items-start space-x-4">
+                    <div class="w-16 h-16 rounded-full bg-yellow-100 flex items-center justify-center text-2xl text-yellow-600">
+                        <i class="fas fa-award"></i>
+                    </div>
+                    <div class="flex-1">
+                        <h3 class="text-lg font-semibold text-gray-800">情绪大师</h3>
+                        <p class="text-sm text-gray-600 mt-1">记录10个情绪并完成5个瓶子</p>
+                        <div class="mt-2">
+                            <div class="flex items-center justify-between text-sm">
+                                <span class="text-gray-500">进度</span>
+                                <span id="progress-master">0/10 记录, 0/5 瓶子</span>
+                            </div>
+                            <div class="progress-bar mt-1">
+                                <div class="progress-fill" id="fill-master" style="width: 0%"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <div class="text-2xl text-gray-400" id="status-master">
+                            <i class="fas fa-lock"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 纯焦虑瓶 -->
+            <div class="achievement-card" data-achievement="pure-anxiety">
+                <div class="flex items-start space-x-4">
+                    <div class="w-16 h-16 rounded-full bg-red-100 flex items-center justify-center text-2xl text-red-600">
+                        <i class="fas fa-fire"></i>
+                    </div>
+                    <div class="flex-1">
+                        <h3 class="text-lg font-semibold text-gray-800">焦虑净化者</h3>
+                        <p class="text-sm text-gray-600 mt-1">完成一个只包含焦虑情绪的瓶子</p>
+                        <div class="mt-2">
+                            <div class="flex items-center justify-between text-sm">
+                                <span class="text-gray-500">进度</span>
+                                <span id="progress-pure-anxiety">0/1</span>
+                            </div>
+                            <div class="progress-bar mt-1">
+                                <div class="progress-fill" id="fill-pure-anxiety" style="width: 0%"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <div class="text-2xl text-gray-400" id="status-pure-anxiety">
+                            <i class="fas fa-lock"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 纯紧张瓶 -->
+            <div class="achievement-card" data-achievement="pure-tension">
+                <div class="flex items-start space-x-4">
+                    <div class="w-16 h-16 rounded-full bg-orange-100 flex items-center justify-center text-2xl text-orange-600">
+                        <i class="fas fa-heartbeat"></i>
+                    </div>
+                    <div class="flex-1">
+                        <h3 class="text-lg font-semibold text-gray-800">紧张释放者</h3>
+                        <p class="text-sm text-gray-600 mt-1">完成一个只包含紧张情绪的瓶子</p>
+                        <div class="mt-2">
+                            <div class="flex items-center justify-between text-sm">
+                                <span class="text-gray-500">进度</span>
+                                <span id="progress-pure-tension">0/1</span>
+                            </div>
+                            <div class="progress-bar mt-1">
+                                <div class="progress-fill" id="fill-pure-tension" style="width: 0%"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <div class="text-2xl text-gray-400" id="status-pure-tension">
+                            <i class="fas fa-lock"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 纯不安瓶 -->
+            <div class="achievement-card" data-achievement="pure-unease">
+                <div class="flex items-start space-x-4">
+                    <div class="w-16 h-16 rounded-full bg-yellow-100 flex items-center justify-center text-2xl text-yellow-600">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                    <div class="flex-1">
+                        <h3 class="text-lg font-semibold text-gray-800">不安平息者</h3>
+                        <p class="text-sm text-gray-600 mt-1">完成一个只包含不安情绪的瓶子</p>
+                        <div class="mt-2">
+                            <div class="flex items-center justify-between text-sm">
+                                <span class="text-gray-500">进度</span>
+                                <span id="progress-pure-unease">0/1</span>
+                            </div>
+                            <div class="progress-bar mt-1">
+                                <div class="progress-fill" id="fill-pure-unease" style="width: 0%"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <div class="text-2xl text-gray-400" id="status-pure-unease">
+                            <i class="fas fa-lock"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 纯孤独瓶 -->
+            <div class="achievement-card" data-achievement="pure-loneliness">
+                <div class="flex items-start space-x-4">
+                    <div class="w-16 h-16 rounded-full bg-purple-100 flex items-center justify-center text-2xl text-purple-600">
+                        <i class="fas fa-user-slash"></i>
+                    </div>
+                    <div class="flex-1">
+                        <h3 class="text-lg font-semibold text-gray-800">孤独驱散者</h3>
+                        <p class="text-sm text-gray-600 mt-1">完成一个只包含孤独情绪的瓶子</p>
+                        <div class="mt-2">
+                            <div class="flex items-center justify-between text-sm">
+                                <span class="text-gray-500">进度</span>
+                                <span id="progress-pure-loneliness">0/1</span>
+                            </div>
+                            <div class="progress-bar mt-1">
+                                <div class="progress-fill" id="fill-pure-loneliness" style="width: 0%"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <div class="text-2xl text-gray-400" id="status-pure-loneliness">
+                            <i class="fas fa-lock"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 纯沮丧瓶 -->
+            <div class="achievement-card" data-achievement="pure-depression">
+                <div class="flex items-start space-x-4">
+                    <div class="w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center text-2xl text-blue-600">
+                        <i class="fas fa-cloud-rain"></i>
+                    </div>
+                    <div class="flex-1">
+                        <h3 class="text-lg font-semibold text-gray-800">沮丧化解者</h3>
+                        <p class="text-sm text-gray-600 mt-1">完成一个只包含沮丧情绪的瓶子</p>
+                        <div class="mt-2">
+                            <div class="flex items-center justify-between text-sm">
+                                <span class="text-gray-500">进度</span>
+                                <span id="progress-pure-depression">0/1</span>
+                            </div>
+                            <div class="progress-bar mt-1">
+                                <div class="progress-fill" id="fill-pure-depression" style="width: 0%"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <div class="text-2xl text-gray-400" id="status-pure-depression">
+                            <i class="fas fa-lock"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 纯压力瓶 -->
+            <div class="achievement-card" data-achievement="pure-pressure">
+                <div class="flex items-start space-x-4">
+                    <div class="w-16 h-16 rounded-full bg-indigo-100 flex items-center justify-center text-2xl text-indigo-600">
+                        <i class="fas fa-bolt"></i>
+                    </div>
+                    <div class="flex-1">
+                        <h3 class="text-lg font-semibold text-gray-800">压力释放者</h3>
+                        <p class="text-sm text-gray-600 mt-1">完成一个只包含压力情绪的瓶子</p>
+                        <div class="mt-2">
+                            <div class="flex items-center justify-between text-sm">
+                                <span class="text-gray-500">进度</span>
+                                <span id="progress-pure-pressure">0/1</span>
+                            </div>
+                            <div class="progress-bar mt-1">
+                                <div class="progress-fill" id="fill-pure-pressure" style="width: 0%"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <div class="text-2xl text-gray-400" id="status-pure-pressure">
+                            <i class="fas fa-lock"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 获取数据
+        function getAchievementData() {
+            const emotionLogs = JSON.parse(localStorage.getItem('emotionLogs') || '[]');
+            const completedBottles = JSON.parse(localStorage.getItem('completedBottles') || '[]');
+            
+            const totalRecords = emotionLogs.length;
+            const totalBottles = completedBottles.length;
+            
+            // 计算连续记录天数
+            const uniqueDates = [...new Set(emotionLogs.map(log => log.date))].sort();
+            let streak = 1;
+            let maxStreak = 1;
+            
+            for (let i = 1; i < uniqueDates.length; i++) {
+                const prevDate = new Date(uniqueDates[i-1]);
+                const currDate = new Date(uniqueDates[i]);
+                const diffTime = currDate - prevDate;
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                
+                if (diffDays === 1) {
+                    streak++;
+                    maxStreak = Math.max(maxStreak, streak);
+                } else if (diffDays > 1) {
+                    streak = 1;
+                }
+            }
+            
+            // 计算单一情绪瓶子的完成情况
+            const pureEmotionAchievements = {
+                pureAnxiety: false,
+                pureTension: false,
+                pureUnease: false,
+                pureLoneliness: false,
+                pureDepression: false,
+                purePressure: false
+            };
+            
+            completedBottles.forEach(bottle => {
+                if (bottle.entries && bottle.entries.length > 0) {
+                    const emotions = bottle.entries.map(entry => entry.emotion);
+                    const uniqueEmotions = [...new Set(emotions)];
+                    
+                    if (uniqueEmotions.length === 1) {
+                        const emotion = uniqueEmotions[0];
+                        switch(emotion) {
+                            case '焦虑':
+                                pureEmotionAchievements.pureAnxiety = true;
+                                break;
+                            case '紧张':
+                                pureEmotionAchievements.pureTension = true;
+                                break;
+                            case '不安':
+                                pureEmotionAchievements.pureUnease = true;
+                                break;
+                            case '孤独':
+                                pureEmotionAchievements.pureLoneliness = true;
+                                break;
+                            case '沮丧':
+                                pureEmotionAchievements.pureDepression = true;
+                                break;
+                            case '压力':
+                                pureEmotionAchievements.purePressure = true;
+                                break;
+                        }
+                    }
+                }
+            });
+            
+            return {
+                totalRecords,
+                totalBottles,
+                streak: maxStreak,
+                uniqueDates: uniqueDates.length,
+                ...pureEmotionAchievements
+            };
+        }
+
+        // 更新成就状态
+        function updateAchievements() {
+            const data = getAchievementData();
+            let unlockedCount = 0;
+
+            // 情绪启蒙
+            const noviceProgress = Math.min(data.totalRecords, 1);
+            const noviceUnlocked = data.totalRecords >= 1;
+            document.getElementById('progress-novice').textContent = `${noviceProgress}/1`;
+            document.getElementById('fill-novice').style.width = `${noviceProgress * 100}%`;
+            document.getElementById('status-novice').innerHTML = noviceUnlocked ? 
+                '<i class="fas fa-unlock text-green-500"></i>' : '<i class="fas fa-lock text-gray-400"></i>';
+            document.querySelector('[data-achievement="emotion-novice"]').classList.toggle('unlocked', noviceUnlocked);
+            if (noviceUnlocked) unlockedCount++;
+
+            // 瓶满则溢
+            const bottleProgress = Math.min(data.totalBottles, 1);
+            const bottleUnlocked = data.totalBottles >= 1;
+            document.getElementById('progress-bottle').textContent = `${bottleProgress}/1`;
+            document.getElementById('fill-bottle').style.width = `${bottleProgress * 100}%`;
+            document.getElementById('status-bottle').innerHTML = bottleUnlocked ? 
+                '<i class="fas fa-unlock text-green-500"></i>' : '<i class="fas fa-lock text-gray-400"></i>';
+            document.querySelector('[data-achievement="bottle-collector"]').classList.toggle('unlocked', bottleUnlocked);
+            if (bottleUnlocked) unlockedCount++;
+
+            // 坚持不懈
+            const consistentProgress = Math.min(data.streak, 3);
+            const consistentUnlocked = data.streak >= 3;
+            document.getElementById('progress-consistent').textContent = `${consistentProgress}/3`;
+            document.getElementById('fill-consistent').style.width = `${(consistentProgress / 3) * 100}%`;
+            document.getElementById('status-consistent').innerHTML = consistentUnlocked ? 
+                '<i class="fas fa-unlock text-green-500"></i>' : '<i class="fas fa-lock text-gray-400"></i>';
+            document.querySelector('[data-achievement="consistent-recorder"]').classList.toggle('unlocked', consistentUnlocked);
+            if (consistentUnlocked) unlockedCount++;
+
+            // 情绪大师
+            const masterProgress = Math.min(data.totalRecords, 10);
+            const masterBottleProgress = Math.min(data.totalBottles, 5);
+            const masterUnlocked = data.totalRecords >= 10 && data.totalBottles >= 5;
+            document.getElementById('progress-master').textContent = `${masterProgress}/10 记录, ${masterBottleProgress}/5 瓶子`;
+            const masterPercentage = Math.min(((data.totalRecords / 10) + (data.totalBottles / 5)) / 2 * 100, 100);
+            document.getElementById('fill-master').style.width = `${masterPercentage}%`;
+            document.getElementById('status-master').innerHTML = masterUnlocked ? 
+                '<i class="fas fa-unlock text-green-500"></i>' : '<i class="fas fa-lock text-gray-400"></i>';
+            document.querySelector('[data-achievement="emotion-master"]').classList.toggle('unlocked', masterUnlocked);
+            if (masterUnlocked) unlockedCount++;
+
+            // 纯焦虑瓶
+            const pureAnxietyProgress = data.pureAnxiety ? 1 : 0;
+            const pureAnxietyUnlocked = data.pureAnxiety;
+            document.getElementById('progress-pure-anxiety').textContent = `${pureAnxietyProgress}/1`;
+            document.getElementById('fill-pure-anxiety').style.width = `${pureAnxietyProgress * 100}%`;
+            document.getElementById('status-pure-anxiety').innerHTML = pureAnxietyUnlocked ? 
+                '<i class="fas fa-unlock text-green-500"></i>' : '<i class="fas fa-lock text-gray-400"></i>';
+            document.querySelector('[data-achievement="pure-anxiety"]').classList.toggle('unlocked', pureAnxietyUnlocked);
+            if (pureAnxietyUnlocked) unlockedCount++;
+
+            // 纯紧张瓶
+            const pureTensionProgress = data.pureTension ? 1 : 0;
+            const pureTensionUnlocked = data.pureTension;
+            document.getElementById('progress-pure-tension').textContent = `${pureTensionProgress}/1`;
+            document.getElementById('fill-pure-tension').style.width = `${pureTensionProgress * 100}%`;
+            document.getElementById('status-pure-tension').innerHTML = pureTensionUnlocked ? 
+                '<i class="fas fa-unlock text-green-500"></i>' : '<i class="fas fa-lock text-gray-400"></i>';
+            document.querySelector('[data-achievement="pure-tension"]').classList.toggle('unlocked', pureTensionUnlocked);
+            if (pureTensionUnlocked) unlockedCount++;
+
+            // 纯不安瓶
+            const pureUneaseProgress = data.pureUnease ? 1 : 0;
+            const pureUneaseUnlocked = data.pureUnease;
+            document.getElementById('progress-pure-unease').textContent = `${pureUneaseProgress}/1`;
+            document.getElementById('fill-pure-unease').style.width = `${pureUneaseProgress * 100}%`;
+            document.getElementById('status-pure-unease').innerHTML = pureUneaseUnlocked ? 
+                '<i class="fas fa-unlock text-green-500"></i>' : '<i class="fas fa-lock text-gray-400"></i>';
+            document.querySelector('[data-achievement="pure-unease"]').classList.toggle('unlocked', pureUneaseUnlocked);
+            if (pureUneaseUnlocked) unlockedCount++;
+
+            // 纯孤独瓶
+            const pureLonelinessProgress = data.pureLoneliness ? 1 : 0;
+            const pureLonelinessUnlocked = data.pureLoneliness;
+            document.getElementById('progress-pure-loneliness').textContent = `${pureLonelinessProgress}/1`;
+            document.getElementById('fill-pure-loneliness').style.width = `${pureLonelinessProgress * 100}%`;
+            document.getElementById('status-pure-loneliness').innerHTML = pureLonelinessUnlocked ? 
+                '<i class="fas fa-unlock text-green-500"></i>' : '<i class="fas fa-lock text-gray-400"></i>';
+            document.querySelector('[data-achievement="pure-loneliness"]').classList.toggle('unlocked', pureLonelinessUnlocked);
+            if (pureLonelinessUnlocked) unlockedCount++;
+
+            // 纯沮丧瓶
+            const pureDepressionProgress = data.pureDepression ? 1 : 0;
+            const pureDepressionUnlocked = data.pureDepression;
+            document.getElementById('progress-pure-depression').textContent = `${pureDepressionProgress}/1`;
+            document.getElementById('fill-pure-depression').style.width = `${pureDepressionProgress * 100}%`;
+            document.getElementById('status-pure-depression').innerHTML = pureDepressionUnlocked ? 
+                '<i class="fas fa-unlock text-green-500"></i>' : '<i class="fas fa-lock text-gray-400"></i>';
+            document.querySelector('[data-achievement="pure-depression"]').classList.toggle('unlocked', pureDepressionUnlocked);
+            if (pureDepressionUnlocked) unlockedCount++;
+
+            // 纯压力瓶
+            const purePressureProgress = data.purePressure ? 1 : 0;
+            const purePressureUnlocked = data.purePressure;
+            document.getElementById('progress-pure-pressure').textContent = `${purePressureProgress}/1`;
+            document.getElementById('fill-pure-pressure').style.width = `${purePressureProgress * 100}%`;
+            document.getElementById('status-pure-pressure').innerHTML = purePressureUnlocked ? 
+                '<i class="fas fa-unlock text-green-500"></i>' : '<i class="fas fa-lock text-gray-400"></i>';
+            document.querySelector('[data-achievement="pure-pressure"]').classList.toggle('unlocked', purePressureUnlocked);
+            if (purePressureUnlocked) unlockedCount++;
+
+            // 更新总进度
+            const totalProgress = (unlockedCount / 10) * 100;
+            document.getElementById('unlocked-count').textContent = unlockedCount;
+            document.getElementById('progress-fill').style.width = `${totalProgress}%`;
+            document.getElementById('progress-text').textContent = `${Math.round(totalProgress)}% 完成`;
+        }
+
+        // 页面加载时更新
+        document.addEventListener('DOMContentLoaded', function() {
+            updateAchievements();
+        });
+    </script>
+</body>
+</html>

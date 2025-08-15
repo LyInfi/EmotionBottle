@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>情绪记录 - 历史</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js"></script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .emotion-tag {
+                @apply text-xs font-medium px-2.5 py-0.5 rounded-full mr-2 mb-2;
+            }
+            .history-item {
+                @apply bg-white rounded-lg shadow-sm p-4 mb-3 transition-all duration-200 hover:shadow-md;
+            }
+            .date-section {
+                @apply mb-4;
+            }
+            .date-header {
+                @apply flex items-center justify-between cursor-pointer text-sm font-medium text-gray-500 mb-2 px-2 py-1 rounded hover:bg-gray-100 transition-colors;
+            }
+            .date-content {
+                @apply space-y-2 overflow-hidden transition-all duration-300;
+            }
+            .date-content.collapsed {
+                @apply max-h-0;
+            }
+            .date-content.expanded {
+                @apply max-h-none;
+            }
+            .toggle-icon {
+                @apply transition-transform duration-200;
+            }
+            .toggle-icon.rotated {
+                @apply rotate-180;
+            }
+            .stat-item {
+                @apply flex flex-col items-center justify-center p-4;
+            }
+            .stat-value {
+                @apply text-3xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent;
+            }
+            .stat-label {
+                @apply text-sm text-gray-600 mt-2 font-medium;
+            }
+            .achievement-badge {
+                @apply flex flex-col items-center p-3 rounded-xl transition-all duration-300 hover:scale-105;
+                background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            }
+            .achievement-badge.active {
+                background: linear-gradient(135deg, #4F46E5 0%, #EC4899 100%);
+                color: white;
+            }
+            .achievement-badge.unlocked {
+                background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+                color: white;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 h-full">
+    <div class="p-4">
+        <h2 class="text-xl font-semibold text-gray-800 mb-6">情绪记录</h2>
+
+        <!-- 情绪统计图表 -->
+        <div class="bg-white rounded-lg shadow-sm p-4 mb-6">
+            <h3 class="text-lg font-medium text-gray-700 mb-4">情绪曲线</h3>
+            <div class="h-64">
+                <canvas id="emotionChart"></canvas>
+            </div>
+        </div>
+
+
+
+        <!-- 情绪统计卡片 -->
+        <div class="grid grid-cols-2 gap-4 mb-6">
+            <a href="records.html" class="bg-white rounded-lg shadow-sm p-4 hover:shadow-md transition-all duration-200 cursor-pointer">
+                <div class="text-2xl font-bold text-indigo-600" id="total-records">0</div>
+                <div class="text-sm text-gray-600">总记录</div>
+            </a>
+            <div class="bg-white rounded-lg shadow-sm p-4">
+                <div class="text-2xl font-bold text-purple-600" id="total-days">0</div>
+                <div class="text-sm text-gray-600">总记录（天）</div>
+            </div>
+            <div class="bg-white rounded-lg shadow-sm p-4">
+                <div class="text-2xl font-bold text-green-600" id="total-bottles">0</div>
+                <div class="text-sm text-gray-600">已完成瓶子</div>
+            </div>
+            <div class="bg-white rounded-lg shadow-sm p-4">
+                <div class="text-2xl font-bold text-orange-600" id="streak-days">0</div>
+                <div class="text-sm text-gray-600">最长连续记录（天）</div>
+            </div>
+        </div>
+
+        <!-- 成就徽章 -->
+        <div class="bg-white rounded-lg shadow-sm p-4 mb-6">
+            <a href="achievements.html" class="flex items-center justify-between mb-4 text-lg font-medium text-gray-700 hover:text-indigo-600 transition-colors">
+                <h3 class="text-lg font-medium text-gray-700">我的成就</h3>
+                <i class="fas fa-chevron-right text-gray-400"></i>
+            </a>
+            <div class="grid grid-cols-4 gap-3">
+                <div class="achievement-badge" data-achievement="emotion-novice">
+                    <div class="w-16 h-16 rounded-full flex items-center justify-center text-2xl mb-2">
+                        <i class="fas fa-seedling"></i>
+                    </div>
+                    <p class="text-xs font-medium">情绪启蒙</p>
+                </div>
+                <div class="achievement-badge" data-achievement="bottle-collector">
+                    <div class="w-16 h-16 rounded-full flex items-center justify-center text-2xl mb-2">
+                        <i class="fas fa-tint"></i>
+                    </div>
+                    <p class="text-xs font-medium">瓶满则溢</p>
+                </div>
+                <div class="achievement-badge" data-achievement="consistent-recorder">
+                    <div class="w-16 h-16 rounded-full flex items-center justify-center text-2xl mb-2">
+                        <i class="fas fa-calendar-check"></i>
+                    </div>
+                    <p class="text-xs font-medium">坚持不懈</p>
+                </div>
+                <div class="achievement-badge" data-achievement="emotion-master">
+                    <div class="w-16 h-16 rounded-full flex items-center justify-center text-2xl mb-2">
+                        <i class="fas fa-award"></i>
+                    </div>
+                    <p class="text-xs font-medium">情绪大师</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 历史记录链接 -->
+        <div class="bg-white rounded-lg shadow-sm p-4 mb-6">
+            <a href="records.html" class="flex items-center justify-between text-lg font-medium text-gray-700 hover:text-indigo-600 transition-colors mb-4">
+                <span>查看完整历史记录</span>
+                <i class="fas fa-chevron-right text-gray-400"></i>
+            </a>
+            <button onclick="clearAllRecords()" class="w-full bg-red-500 text-white py-3 px-4 rounded-lg hover:bg-red-600 transition-colors flex items-center justify-center">
+                <i class="fas fa-trash-alt mr-2"></i>
+                清空所有记录
+            </button>
+        </div>
+
+        <!-- 关于卡片 -->
+        <div class="bg-white rounded-lg shadow-sm p-4">
+            <a href="about.html" class="flex items-center justify-between text-lg font-medium text-gray-700 hover:text-indigo-600 transition-colors">
+                <span>关于</span>
+                <i class="fas fa-chevron-right text-gray-400"></i>
+            </a>
+        </div>
+    </div>
+
+    <script>
+        // 检查Chart.js是否可用
+        let chartAvailable = false;
+        
+        // 初始化图表（折线图 - 最近7天每日记录数量）
+        function initChart() {
+            const canvas = document.getElementById('emotionChart');
+            if (!canvas) return;
+            
+            const ctx = canvas.getContext('2d');
+            
+            // 获取情绪日志数据
+            const emotionLogs = JSON.parse(localStorage.getItem('emotionLogs') || '[]');
+            
+            // 如果没有数据，显示空状态
+            if (emotionLogs.length === 0 || !chartAvailable) {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.font = '14px sans-serif';
+                ctx.fillStyle = '#9CA3AF';
+                ctx.textAlign = 'center';
+                ctx.fillText('暂无数据', canvas.width / 2, canvas.height / 2);
+                return;
+            }
+
+            try {
+                // 获取最近7天的日期
+                const today = new Date();
+                const last7Days = [];
+                const dailyCounts = [];
+                
+                for (let i = 6; i >= 0; i--) {
+                    const date = new Date(today);
+                    date.setDate(today.getDate() - i);
+                    const dateString = date.toISOString().split('T')[0];
+                    last7Days.push(dateString);
+                    
+                    // 计算该日期的记录数量
+                    const count = emotionLogs.filter(log => log.date === dateString).length;
+                    dailyCounts.push(count);
+                }
+
+                // 格式化日期标签
+                const labels = last7Days.map(date => {
+                    const d = new Date(date);
+                    return `${d.getMonth() + 1}/${d.getDate()}`;
+                });
+
+                new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: '每日记录数',
+                            data: dailyCounts,
+                            borderColor: '#4F46E5',
+                            backgroundColor: 'rgba(79, 70, 229, 0.1)',
+                            borderWidth: 3,
+                            fill: true,
+                            tension: 0.4,
+                            pointBackgroundColor: '#4F46E5',
+                            pointBorderColor: '#ffffff',
+                            pointBorderWidth: 2,
+                            pointRadius: 5,
+                            pointHoverRadius: 7
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: false
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    stepSize: 1,
+                                    precision: 0
+                                },
+                                grid: {
+                                    color: '#f3f4f6'
+                                }
+                            },
+                            x: {
+                                grid: {
+                                    display: false
+                                }
+                            }
+                        }
+                    }
+                });
+            } catch (error) {
+                console.error('图表初始化失败:', error);
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.font = '12px sans-serif';
+                ctx.fillStyle = '#9CA3AF';
+                ctx.textAlign = 'center';
+                ctx.fillText('图表加载失败', canvas.width / 2, canvas.height / 2);
+            }
+        }
+
+        // 加载历史记录
+        function loadHistory() {
+            const emotionLogs = JSON.parse(localStorage.getItem('emotionLogs') || '[]');
+            const completedBottles = JSON.parse(localStorage.getItem('completedBottles') || '[]');
+
+            // 更新统计数字
+            document.getElementById('total-records').textContent = emotionLogs.length;
+            const uniqueDays = [...new Set(emotionLogs.map(log => log.date))].length;
+            document.getElementById('total-days').textContent = uniqueDays;
+            document.getElementById('total-bottles').textContent = completedBottles.length;
+
+            // 计算连续记录天数
+            calculateStreakDays();
+
+            // 初始化图表
+            initChart();
+        }
+
+        // 获取情绪对应的颜色
+        function getEmotionColor(emotion) {
+            const colors = {
+                '焦虑': 'bg-red-100 text-red-800',
+                '紧张': 'bg-orange-100 text-orange-800',
+                '不安': 'bg-yellow-100 text-yellow-800',
+                '孤独': 'bg-purple-100 text-purple-800',
+                '沮丧': 'bg-blue-100 text-blue-800',
+                '压力': 'bg-indigo-100 text-indigo-800'
+            };
+            return colors[emotion] || 'bg-gray-100 text-gray-800';
+        }
+
+        // 获取情绪对应的图标
+        function getEmotionIcon(emotion) {
+            const icons = {
+                '焦虑': '<i class="fas fa-fire-alt mr-1"></i>',
+                '紧张': '<i class="fas fa-heartbeat mr-1"></i>',
+                '不安': '<i class="fas fa-exclamation-triangle mr-1"></i>',
+                '孤独': '<i class="fas fa-user mr-1"></i>',
+                '沮丧': '<i class="fas fa-cloud-rain mr-1"></i>',
+                '压力': '<i class="fas fa-bolt mr-1"></i>'
+            };
+            return icons[emotion] || '<i class="fas fa-meh mr-1"></i>';
+        }
+
+        // 计算连续记录天数
+        function calculateStreakDays() {
+            const logs = JSON.parse(localStorage.getItem('emotionLogs') || '[]');
+            if (logs.length === 0) {
+                document.getElementById('streak-days').textContent = '0';
+                return 0;
+            }
+
+            // 提取所有记录日期并去重排序
+            const dates = [...new Set(logs.map(log => log.date))].sort();
+            let streak = 1;
+            let maxStreak = 1;
+
+            // 计算最大连续天数
+            for (let i = 1; i < dates.length; i++) {
+                const prevDate = new Date(dates[i-1]);
+                const currDate = new Date(dates[i]);
+                const diffTime = currDate - prevDate;
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+                if (diffDays === 1) {
+                    streak++;
+                    maxStreak = Math.max(maxStreak, streak);
+                } else if (diffDays > 1) {
+                    streak = 1;
+                }
+            }
+
+            document.getElementById('streak-days').textContent = maxStreak;
+            return maxStreak;
+        }
+
+
+
+        // 检查并解锁成就
+        function checkAchievements() {
+            const emotionLogs = JSON.parse(localStorage.getItem('emotionLogs') || '[]');
+            const completedBottles = JSON.parse(localStorage.getItem('completedBottles') || '[]');
+            
+            const achievements = {
+                'emotion-novice': emotionLogs.length >= 1,
+                'bottle-collector': completedBottles.length >= 1,
+                'consistent-recorder': calculateStreakDays() >= 3,
+                'emotion-master': emotionLogs.length >= 10 && completedBottles.length >= 5
+            };
+
+            // 更新成就徽章状态
+            const badges = document.querySelectorAll('.achievement-badge');
+            badges.forEach(badge => {
+                const achievementKey = badge.getAttribute('data-achievement');
+                if (achievements[achievementKey]) {
+                    badge.classList.add('unlocked');
+                }
+            });
+        }
+
+        // 清空所有记录
+        function clearAllRecords() {
+            if (confirm('确定要清除所有情绪记录吗？此操作不可恢复！')) {
+                localStorage.removeItem('emotionLogs');
+                localStorage.removeItem('completedBottles');
+                localStorage.removeItem('currentFillLevel');
+                
+                // 重置页面显示
+                document.getElementById('total-records').textContent = '0';
+                document.getElementById('total-days').textContent = '0';
+                document.getElementById('total-bottles').textContent = '0';
+                document.getElementById('streak-days').textContent = '0';
+                
+                // 清空图表
+                const canvas = document.getElementById('emotionChart');
+                if (canvas) {
+                    const ctx = canvas.getContext('2d');
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    ctx.font = '14px sans-serif';
+                    ctx.fillStyle = '#9CA3AF';
+                    ctx.textAlign = 'center';
+                    ctx.fillText('暂无数据', canvas.width / 2, canvas.height / 2);
+                }
+                
+                // 重置成就徽章
+                const badges = document.querySelectorAll('.achievement-badge');
+                badges.forEach(badge => {
+                    badge.classList.remove('unlocked');
+                });
+                
+                alert('所有记录已清空！');
+            }
+        }
+
+        // 页面加载时初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            // 检查Chart.js是否加载成功
+            chartAvailable = typeof Chart !== 'undefined';
+            if (!chartAvailable) {
+                console.warn('Chart.js加载失败，图表功能将不可用');
+            }
+            loadHistory();
+            // 延迟检查成就，确保数据加载完成
+            setTimeout(checkAchievements, 100);
+        });
+    </script>
+</body>
+</html>
