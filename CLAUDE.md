@@ -14,7 +14,7 @@ This is "情绪小瓶子" (Emotion Bottle), a Chinese-language web application f
 - `records.html` - Detailed history view with filtering and data visualization
 - `achievements.html` - Achievement system showing user progress
 - `about.html` - Information about the app and donation options
-- `logo.png`, `wxzf.jpg`, `zfb.jpg` - Static assets (logo and payment QR codes)
+- `logo.png`, `static/wxzf.jpg`, `static/zfb.jpg` - Static assets (logo and payment QR codes)
 
 ## Technology Stack
 
