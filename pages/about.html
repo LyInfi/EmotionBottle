@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>关于 - 情绪小瓶子</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="../config/tailwind-config.js"></script>
+    <script>
+        if (window.tailwindConfig) {
+            tailwind.config = window.tailwindConfig;
+        }
+    </script>
+    <link rel="stylesheet" href="../assets/css/common.css">
+    <script src="../assets/js/common.js"></script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            /* 背景渐变样式 */
+            .gradient-bg {
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            }
+
+            /* 卡片悬停效果 */
+            .card-hover {
+                @apply transition-all duration-300 hover:shadow-lg hover:scale-105;
+            }
+
+            /* Buy Me a Coffee 相关样式 */
+            .coffee-btn-gradient {
+                background: linear-gradient(135deg, #f59e0b 0%, #ea580c 100%);
+            }
+            .coffee-btn-gradient:hover {
+                background: linear-gradient(135deg, #d97706 0%, #dc2626 100%);
+            }
+
+            /* 支付方式按钮动画 */
+            .payment-method-btn {
+                @apply transition-all duration-300 transform hover:scale-105;
+            }
+            .payment-method-btn:active {
+                @apply scale-95;
+            }
+
+            /* 模态框动画 */
+            #payment-modal {
+                backdrop-filter: blur(4px);
+            }
+            #payment-modal > div {
+                animation: modalSlideIn 0.3s ease-out;
+            }
+
+            @keyframes modalSlideIn {
+                from {
+                    opacity: 0;
+                    transform: scale(0.9) translateY(-20px);
+                }
+                to {
+                    opacity: 1;
+                    transform: scale(1) translateY(0);
+                }
+            }
+
+            /* 咖啡图标动画 */
+            .coffee-icon-bounce {
+                animation: coffeeBounce 2s infinite;
+            }
+
+            @keyframes coffeeBounce {
+                0%, 20%, 50%, 80%, 100% {
+                    transform: translateY(0);
+                }
+                40% {
+                    transform: translateY(-10px);
+                }
+                60% {
+                    transform: translateY(-5px);
+                }
+            }
+
+            @keyframes fadeInUp {
+                from {
+                    opacity: 0;
+                    transform: translateY(20px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+
+            /* 金额按钮激活状态 */
+            .coffee-amount-btn.active {
+                @apply bg-amber-500 text-white shadow-md;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <!-- 顶部导航 -->
+    <div class="bg-white shadow-sm">
+        <div class="max-w-4xl mx-auto px-4 py-4">
+            <div class="flex items-center">
+                <a href="history.html" class="text-gray-600 hover:text-indigo-600 mr-4">
+                    <i class="fas fa-arrow-left"></i>
+                </a>
+                <h1 class="text-xl font-semibold text-gray-800">关于</h1>
+            </div>
+        </div>
+    </div>
+
+    <div class="max-w-4xl mx-auto px-4 py-8">
+        <!-- 应用介绍 -->
+        <div class="bg-white rounded-xl shadow-sm p-6 mb-6">
+            <div class="flex items-center mb-4">
+                <div class="w-16 h-16 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center text-white text-2xl">
+                    <img src="../assets/images/logo.png"></img>
+                </div>
+                <div class="ml-4">
+                    <h2 class="text-2xl font-bold text-gray-800">情绪小瓶子</h2>
+                    <p class="text-gray-600">记录情绪，释放压力</p>
+                </div>
+            </div>
+            
+            <div class="prose max-w-none text-gray-700">
+                <p class="mb-4">
+                    情绪小瓶子是一个专注于情绪管理和心理健康的小工具。我们希望通过简单、有趣的方式，帮助用户记录每日情绪变化，释放内心压力，培养积极健康的心理状态。
+                </p>
+                
+                <h3 class="text-lg font-semibold text-gray-800 mb-3">核心功能</h3>
+                <ul class="list-disc pl-5 space-y-2 mb-4">
+                    <li>情绪记录：支持6种常见情绪的快速记录</li>
+                    <li>释放压力：将负面情绪装入瓶子，装满后完全释放</li>
+                    <li>成就系统：解锁各种有趣的成就徽章</li>
+                    <li>数据统计：可视化展示情绪变化趋势</li>
+                    <li>隐私保护：所有数据本地存储，不收集任何用户个人信息</li>
+                </ul>
+                
+                <h3 class="text-lg font-semibold text-gray-800 mb-3">设计理念</h3>
+                <p>
+                    ”觉察“自己的情绪，是释放压力的第一步。当你能够真正觉察到自己的负面情绪时，你就不会再焦虑抑郁了。
+                    <br>
+                    <br>
+                    希望通过这个简单的小工具，能够帮助那些深陷情绪泥潭的人，更好地理解自己的情绪，释放自己的压力，培养一个积极健康的心理状态。
+                </p>
+
+                <h3 class="text-lg font-semibold text-gray-800 mb-3 mt-6">联系与反馈</h3>
+                <p class="text-gray-600 mb-4">
+                    如有任何问题、建议，请随时联系我们。
+                </p>
+                <p class="text-gray-600 mb-4">
+                    官方网站：<a href="https://www.emotionbottle.com" target="_blank" class="text-indigo-600 hover:underline">www.emotionbottle.com</a>
+                    <br>
+                    QQ群：情绪小瓶子1群（960727715）
+                </p>
+            </div>
+        </div>
+
+        <!-- 作者介绍 -->
+        <div class="bg-white rounded-xl shadow-sm p-6 mb-6">
+            <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
+                <i class="fas fa-user-circle mr-2 text-indigo-600"></i>
+                关于作者
+            </h2>
+            
+            <div class="flex items-start space-x-4">
+                <!-- <div class="w-20 h-20 bg-gradient-to-br from-pink-500 to-orange-500 rounded-full flex items-center justify-center text-white text-2xl">
+                    <i class="fas fa-heart"></i>
+                </div> -->
+                
+                <div class="flex-1">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-2">Ly_Infi</h3>
+                    <p class="text-gray-600 mb-3">
+                        一个曾经历过焦虑抑郁，并且伴有较为严重躯体症状的开发者。创建这个小工具，希望能帮助更多人关注自己的情绪健康，学会释放自己内心的压力，与自己的各种情绪和平相处。
+                    </p>
+                    
+                    <div class="text-sm text-gray-500">
+                        <!-- <p><i class="fas fa-envelope mr-2"></i>联系邮箱：emotion@example.com</p>
+                        <p><i class="fas fa-globe mr-2"></i>个人博客：www.emotionbottle.com</p> -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 支持开发者 -->
+        <div class="bg-white rounded-xl shadow-sm p-6">
+            <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
+                <i class="fas fa-coffee mr-2 text-amber-600"></i>
+                请作者喝咖啡
+            </h2>
+
+            <p class="text-gray-600 mb-6">
+                该工具永久免费使用，不会收集任何用户个人信息。
+            </p>
+            <p class="text-gray-600 mb-8">
+                如果这个小应用对您有所帮助，可以请作者喝杯咖啡，作者喝了咖啡会睡不着，就会继续优化和完善产品啦^^。
+            </p>
+
+            <!-- Buy Me a Coffee 按钮区域 -->
+            <div class="flex flex-col items-center space-y-6">
+                <!-- 主要按钮 -->
+                <a href="#"
+                   id="buy-coffee-btn"
+                   class="inline-flex items-center px-8 py-4 bg-gradient-to-r from-amber-500 to-orange-500 text-white font-semibold rounded-full shadow-lg hover:from-amber-600 hover:to-orange-600 transform hover:scale-105 transition-all duration-300">
+                    <i class="fas fa-coffee mr-3 text-xl"></i>
+                    <span class="text-lg">Buy Me a Coffee</span>
+                </a>
+
+            </div>
+
+            <!-- 信息提示 -->
+            <div class="mt-8 p-4 bg-amber-50 rounded-lg">
+                <p class="text-sm text-amber-800 text-center">
+                    <i class="fas fa-heart mr-2"></i>
+                    完全自愿和随意。记得备注“喝杯咖啡~”！
+                </p>
+            </div>
+        </div>
+
+        <!-- 支付方式选择模态框 -->
+        <div id="payment-method-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+            <div class="bg-white rounded-xl p-6 max-w-md mx-4 text-center">
+                <h3 class="text-xl font-semibold text-gray-800 mb-6">
+                    <i class="fas fa-coffee mr-2 text-amber-600"></i>
+                    请选择支付方式
+                </h3>
+
+                <div class="grid grid-cols-2 gap-4 mb-6">
+                    <!-- 微信支付 -->
+                    <button class="payment-method-select flex flex-col items-center p-6 border-2 border-gray-200 rounded-lg hover:border-green-400 hover:bg-green-50 transition-all duration-200" data-method="wechat">
+                        <i class="fab fa-weixin text-4xl text-green-500 mb-3"></i>
+                        <span class="text-sm font-medium text-gray-700">微信支付</span>
+                    </button>
+
+                    <!-- 支付宝 -->
+                    <button class="payment-method-select flex flex-col items-center p-6 border-2 border-gray-200 rounded-lg hover:border-blue-400 hover:bg-blue-50 transition-all duration-200" data-method="alipay">
+                        <i class="fab fa-alipay text-4xl text-blue-500 mb-3"></i>
+                        <span class="text-sm font-medium text-gray-700">支付宝</span>
+                    </button>
+                </div>
+
+                <button id="close-payment-method-modal" class="px-6 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors">
+                    取消
+                </button>
+            </div>
+        </div>
+
+        <!-- 支付二维码模态框 -->
+        <div id="payment-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+            <div class="bg-white rounded-xl p-6 max-w-sm mx-4 text-center">
+                <h3 id="modal-title" class="text-lg font-semibold text-gray-800 mb-4"></h3>
+                <div id="qr-container" class="w-48 h-48 mx-auto mb-4">
+                    <img id="qr-image" src="" alt="支付二维码" class="w-full h-full object-cover rounded-lg border border-gray-200">
+                </div>
+                <p class="text-sm text-gray-600 mb-4">请使用对应APP扫码支付</p>
+                <button id="close-modal" class="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors">
+                    关闭
+                </button>
+            </div>
+        </div>
+
+        <!-- 版本信息 -->
+        <div class="text-center mt-8 text-gray-500">
+            <p>版本 v1.0.0</p>
+            <p class="text-sm mt-1">© 2025 情绪小瓶子</p>
+        </div>
+    </div>
+
+    <script>
+        // 页面管理类
+        class AboutPageManager {
+            constructor() {
+                this.modal = null;
+                this.modalTitle = null;
+                this.qrImage = null;
+                this.init();
+            }
+
+            init() {
+                this.initElements();
+                this.bindEvents();
+                this.playLoadAnimation();
+            }
+
+            // 初始化DOM元素
+            initElements() {
+                this.modal = document.getElementById('payment-modal');
+                this.modalTitle = document.getElementById('modal-title');
+                this.qrImage = document.getElementById('qr-image');
+                this.paymentMethodModal = document.getElementById('payment-method-modal');
+            }
+
+            // 绑定事件
+            bindEvents() {
+                // Buy Me a Coffee 主按钮
+                document.getElementById('buy-coffee-btn').addEventListener('click', (e) => {
+                    e.preventDefault();
+                    this.handleBuyCoffee();
+                });
+
+                // 快捷金额按钮
+                document.querySelectorAll('.coffee-amount-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        const amount = e.target.closest('button').getAttribute('data-amount');
+                        this.handleAmountSelect(amount);
+                    });
+                });
+
+                // 支付方式选择按钮
+                document.querySelectorAll('.payment-method-select').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        const method = e.target.closest('button').getAttribute('data-method');
+                        this.hidePaymentMethodModal();
+                        this.showPaymentQR(method);
+                    });
+                });
+
+                // 支付方式模态框关闭按钮
+                document.getElementById('close-payment-method-modal').addEventListener('click', () => {
+                    this.hidePaymentMethodModal();
+                });
+
+                // 支付二维码模态框关闭按钮
+                document.getElementById('close-modal').addEventListener('click', () => {
+                    this.hideModal();
+                });
+
+                // 点击模态框背景关闭
+                this.modal.addEventListener('click', (e) => {
+                    if (e.target === this.modal) {
+                        this.hideModal();
+                    }
+                });
+
+                // 点击支付方式模态框背景关闭
+                this.paymentMethodModal.addEventListener('click', (e) => {
+                    if (e.target === this.paymentMethodModal) {
+                        this.hidePaymentMethodModal();
+                    }
+                });
+            }
+
+            // 页面加载动画
+            playLoadAnimation() {
+                const cards = document.querySelectorAll('.bg-white');
+                cards.forEach((card, index) => {
+                    card.style.opacity = '0';
+                    card.style.transform = 'translateY(20px)';
+                    setTimeout(() => {
+                        card.style.transition = 'all 0.6s ease-out';
+                        card.style.opacity = '1';
+                        card.style.transform = 'translateY(0)';
+                    }, index * 100);
+                });
+            }
+
+            // 处理 Buy Me a Coffee 点击
+            handleBuyCoffee() {
+                // 显示支付方式选择模态框
+                this.showPaymentMethodModal();
+            }
+
+            // 处理金额选择
+            handleAmountSelect(amount) {
+                if (amount === 'custom') {
+                    const customAmount = prompt('请输入您想支持的金额（USD）：');
+                    if (customAmount && !isNaN(customAmount) && parseFloat(customAmount) > 0) {
+                        this.showToast(`感谢您的 $${customAmount} 支持！请选择支付方式`);
+                    }
+                } else {
+                    this.showToast(`感谢您的 $${amount} 支持！请选择支付方式`);
+                }
+            }
+
+            // 显示支付二维码
+            showPaymentQR(method) {
+                const paymentConfig = {
+                    wechat: {
+                        title: '微信支付',
+                        image: '../assets/images/wxzf.jpg'
+                    },
+                    alipay: {
+                        title: '支付宝',
+                        image: '../assets/images/zfb.jpg'
+                    }
+                };
+
+                const config = paymentConfig[method];
+                if (config) {
+                    this.modalTitle.textContent = config.title;
+                    this.qrImage.src = config.image;
+                    this.qrImage.alt = `${config.title}二维码`;
+                    this.showModal();
+                }
+            }
+
+            // 显示模态框
+            showModal() {
+                this.modal.classList.remove('hidden');
+                this.modal.classList.add('flex');
+            }
+
+            // 隐藏模态框
+            hideModal() {
+                this.modal.classList.add('hidden');
+                this.modal.classList.remove('flex');
+            }
+
+            // 显示支付方式选择模态框
+            showPaymentMethodModal() {
+                this.paymentMethodModal.classList.remove('hidden');
+                this.paymentMethodModal.classList.add('flex');
+            }
+
+            // 隐藏支付方式选择模态框
+            hidePaymentMethodModal() {
+                this.paymentMethodModal.classList.add('hidden');
+                this.paymentMethodModal.classList.remove('flex');
+            }
+
+            // 显示提示信息
+            showToast(message) {
+                // 简单的 toast 实现，可以扩展为更复杂的UI
+                alert(message);
+            }
+
+            // 复制邮箱功能（保留兼容性）
+            copyEmail() {
+                const email = 'emotion@example.com';
+                navigator.clipboard.writeText(email).then(() => {
+                    this.showToast('邮箱已复制到剪贴板');
+                }).catch(() => {
+                    this.showToast('复制失败，请手动复制');
+                });
+            }
+        }
+
+        // 全局实例
+        let aboutPageManager;
+
+        // 兼容性函数
+        function copyEmail() {
+            aboutPageManager?.copyEmail();
+        }
+
+        // 页面初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            aboutPageManager = new AboutPageManager();
+        });
+    </script>
+</body>
+</html>

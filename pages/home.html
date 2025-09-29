@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>情绪瓶子 - 首页</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="../config/tailwind-config.js"></script>
+    <script>
+        if (window.tailwindConfig) {
+            tailwind.config = window.tailwindConfig;
+        }
+    </script>
+    <link rel="stylesheet" href="../assets/css/common.css">
+    <script src="../assets/js/common.js"></script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            /* 通用模态弹窗样式 */
+            .modal-overlay {
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                color: white;
+                border-radius: 30px;
+                font-weight: 500;
+                z-index: 1000;
+                opacity: 0;
+                transition: all 0.3s ease;
+                pointer-events: none;
+            }
+            .modal-overlay.show {
+                opacity: 1;
+            }
+
+            .emotion-feedback {
+                @apply modal-overlay;
+                background: rgba(0, 0, 0, 0.8);
+                padding: 20px 40px;
+                border-radius: 50px;
+                font-size: 18px;
+            }
+            .emotion-feedback.show {
+                transform: translate(-50%, -50%) scale(1.1);
+            }
+
+            .breathe-hint {
+                @apply modal-overlay;
+                background: rgba(79, 70, 229, 0.9);
+                padding: 15px 30px;
+                font-size: 16px;
+                margin-top: 20px;
+            }
+            .bottle-container {
+                position: relative;
+                width: 140px;
+                height: 220px;
+                margin: 40px auto;
+                transition: transform 0.8s ease-in-out;
+                transform-origin: bottom center;
+            }
+
+            /* 动画关键帧 */
+            @keyframes emotionFlyToBottle {
+                0% { opacity: 1; transform: scale(1); }
+                30% { opacity: 0.9; transform: scale(1.2); }
+                100% { opacity: 0; transform: scale(0.1) translateY(-120px); }
+            }
+
+            @keyframes fadeOut {
+                0% { opacity: 1; }
+                100% { opacity: 0; }
+            }
+
+            @keyframes fadeIn {
+                0% { opacity: 0; }
+                100% { opacity: 1; }
+            }
+
+            @keyframes foam {
+                0%, 100% { opacity: 0.3; transform: scale(1); }
+                50% { opacity: 0.6; transform: scale(1.02); }
+            }
+
+            @keyframes fillRipple {
+                0% { transform: scale(1); opacity: 0.8; }
+                50% { transform: scale(1.05); opacity: 1; }
+                100% { transform: scale(1); opacity: 0.8; }
+            }
+
+            @keyframes emptyAnimation {
+                0% { height: 100%; opacity: 1; }
+                100% { height: 0%; opacity: 0; }
+            }
+
+            @keyframes tiltBottle {
+                0% { transform: rotate(0deg); }
+                30% { transform: rotate(-15deg); }
+                70% { transform: rotate(-15deg); }
+                100% { transform: rotate(0deg); }
+            }
+
+            /* 动画应用类 */
+            .emotion-fade-out {
+                animation: fadeOut 0.3s ease-out forwards;
+                pointer-events: none;
+            }
+
+            .emotion-fade-in {
+                animation: fadeIn 0.5s ease-in forwards;
+                pointer-events: auto;
+            }
+            .bottle-shape {
+                width: 100%;
+                height: 100%;
+                position: relative;
+                background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+                border-radius: 20px 20px 40px 40px;
+                box-shadow: 
+                    0 8px 32px rgba(79, 70, 229, 0.2),
+                    inset 0 2px 8px rgba(255, 255, 255, 0.6),
+                    inset 0 -2px 8px rgba(0, 0, 0, 0.1);
+                overflow: hidden;
+            }
+            .bottle-shape::before {
+                content: '';
+                position: absolute;
+                top: -15px;
+                left: 50%;
+                transform: translateX(-50%);
+                width: 60px;
+                height: 30px;
+                background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+                border-radius: 30px 30px 0 0;
+                box-shadow: 0 -4px 12px rgba(79, 70, 229, 0.2);
+            }
+            .bottle-glass {
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: linear-gradient(45deg, 
+                    rgba(255, 255, 255, 0.3) 0%, 
+                    rgba(255, 255, 255, 0.1) 50%, 
+                    rgba(255, 255, 255, 0.2) 100%);
+                border-radius: inherit;
+                pointer-events: none;
+            }
+            .bottle-fill {
+                position: absolute;
+                bottom: 0;
+                left: 0;
+                width: 100%;
+                background: linear-gradient(180deg, #4F46E5 0%, #EC4899 50%, #F59E0B 100%);
+                transition: height 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+                border-radius: 0 0 40px 40px;
+                overflow: hidden;
+            }
+
+            .bottle-foam {
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: radial-gradient(
+                    ellipse at center,
+                    rgba(255, 255, 255, 0.2) 0%,
+                    transparent 70%
+                );
+                animation: foam 4s ease-in-out infinite;
+            }
+
+            .bottle-ripple {
+                animation: fillRipple 0.6s ease-out;
+            }
+
+            .bottle-tilt {
+                animation: tiltBottle 1.2s ease-in-out;
+            }
+
+            .bottle-empty-animation {
+                animation: emptyAnimation 1s ease-in-out forwards;
+            }
+            /* 按钮样式 */
+            .emotion-btn {
+                @apply rounded-full py-4 px-8 m-3 text-white shadow-xl transform transition-all duration-300 hover:scale-105 active:scale-95 text-base font-medium;
+            }
+
+            .empty-btn {
+                @apply bg-green-500 hover:bg-green-600 text-white font-medium py-3 px-8 rounded-full shadow-xl transform transition-all duration-300 hover:scale-105 active:scale-95;
+                display: none;
+                position: relative;
+                overflow: hidden;
+            }
+
+            .empty-btn::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 0%;
+                height: 100%;
+                background: rgba(255, 255, 255, 0.3);
+                transition: width 0.1s ease-out;
+                pointer-events: none;
+            }
+
+            .empty-btn.holding::before {
+                width: 100%;
+                transition: width 3s linear;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 h-full flex flex-col items-center justify-between p-4 pb-20">
+    <div id="emotion-feedback" class="emotion-feedback"></div>
+    <div id="breathe-hint" class="breathe-hint">深吸气...</div>
+        <!-- 说明图标 -->
+    <div class="absolute top-4 right-4 z-50">
+        <button id="help-icon" class="text-gray-400 hover:text-indigo-600 transition-colors duration-200">
+            <i class="fas fa-info-circle text-2xl"></i>
+        </button>
+    </div>
+
+    <!-- 说明弹窗 -->
+    <div id="help-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-lg p-6 max-w-md mx-4 shadow-xl">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-semibold text-gray-800">使用小贴士</h3>
+                <button id="close-help" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <p class="text-gray-600 leading-relaxed">
+                当你正在经历负面情绪时，点击相应的情绪按钮代表你已经觉察到了你的情绪。当累积一定的情绪后，倒空瓶子的仪式也会给你一种暗示：我的坏情绪都烟消云散了。
+                <br>
+                ---
+                <br>                
+                把“小瓶子”添加到桌面，方便快速记录情绪。
+            </p>
+        </div>
+    </div>
+
+    <div class="text-center mt-8">
+        <h2 class="text-2xl font-semibold text-gray-800 mb-2">现在感觉如何？</h2>
+        <p class="text-gray-500">选择你正在经历的情绪</p>
+    </div>
+
+    <div class="flex-1 flex flex-col items-center justify-center py-8">
+        <!-- 瓶子组件 -->
+        <div class="bottle-container">
+            <div class="bottle-shape">
+                <div id="bottle-fill" class="bottle-fill" style="height: 0%"></div>
+                <div class="bottle-glass"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 情绪按钮区域 -->
+    <div class="grid grid-cols-2 gap-4 w-full max-w-md px-4 mb-6">
+        <button class="emotion-btn bg-red-500 hover:bg-red-600" data-emotion="焦虑">
+            <i class="fas fa-fire-alt mr-2"></i>焦虑
+        </button>
+        <button class="emotion-btn bg-orange-500 hover:bg-orange-600" data-emotion="紧张">
+            <i class="fas fa-heartbeat mr-2"></i>紧张
+        </button>
+        <button class="emotion-btn bg-yellow-500 hover:bg-yellow-600" data-emotion="不安">
+            <i class="fas fa-exclamation-triangle mr-2"></i>不安
+        </button>
+        <button class="emotion-btn bg-purple-500 hover:bg-purple-600" data-emotion="孤独">
+            <i class="fas fa-user mr-2"></i>孤独
+        </button>
+        <button class="emotion-btn bg-blue-500 hover:bg-blue-600" data-emotion="沮丧">
+            <i class="fas fa-cloud-rain mr-2"></i>沮丧
+        </button>
+        <button class="emotion-btn bg-indigo-500 hover:bg-indigo-600" data-emotion="压力">
+            <i class="fas fa-bolt mr-2"></i>压力
+        </button>
+    </div>
+
+    <!-- 清空瓶子按钮 -->
+    <div class="flex justify-center mb-4">
+        <button id="empty-bottle" class="empty-btn">
+            <i class="fas fa-recycle mr-2"></i>长按清空
+        </button>
+    </div>
+
+    <script>
+        // 应用状态管理
+        class EmotionBottleApp {
+            constructor() {
+                this.maxFillLevel = 10;
+                this.currentFillLevel = parseInt(localStorage.getItem('currentFillLevel')) || 0;
+                this.currentBottleEmotions = JSON.parse(localStorage.getItem('currentBottleEmotions') || '[]');
+                this.isAnimating = false;
+
+                // DOM 元素引用
+                this.bottleFillElement = document.getElementById('bottle-fill');
+                this.emptyButton = document.getElementById('empty-bottle');
+                this.emotionButtons = document.querySelectorAll('.emotion-btn');
+                this.feedbackElement = document.getElementById('emotion-feedback');
+                this.breatheHintElement = document.getElementById('breathe-hint');
+
+                // 初始化
+                this.init();
+            }
+
+            init() {
+                this.updateBottleDisplay();
+                this.bindEvents();
+            }
+
+            // 更新瓶子显示
+            updateBottleDisplay() {
+                const percentage = Math.round((this.currentFillLevel / this.maxFillLevel) * 100);
+                this.bottleFillElement.style.height = `${percentage}%`;
+
+                // 保存状态
+                localStorage.setItem('currentFillLevel', this.currentFillLevel);
+                localStorage.setItem('currentBottleEmotions', JSON.stringify(this.currentBottleEmotions));
+
+                // 切换UI状态
+                if (percentage >= 100) {
+                    this.emptyButton.style.display = 'block';
+                    this.emotionButtons.forEach(btn => btn.style.display = 'none');
+                    this.isAnimating = false;
+                } else {
+                    this.emptyButton.style.display = 'none';
+                    this.emotionButtons.forEach(btn => btn.style.display = 'block');
+                }
+            }
+
+            // 绑定事件
+            bindEvents() {
+                // 情绪按钮事件
+                this.emotionButtons.forEach(button => {
+                    button.addEventListener('click', (e) => this.handleEmotionClick(e));
+                });
+
+                // 清空按钮事件
+                this.bindEmptyButtonEvents();
+
+                // 帮助模态事件
+                this.bindHelpModalEvents();
+            }
+
+            // 处理情绪按钮点击
+            handleEmotionClick(event) {
+                if (this.currentFillLevel >= this.maxFillLevel || this.isAnimating) return;
+
+                const clickedButton = event.target;
+                const emotion = clickedButton.getAttribute('data-emotion');
+
+                this.isAnimating = true;
+                this.createFlyingAnimation(clickedButton, emotion);
+            }
+
+            // 创建飞行动画
+            createFlyingAnimation(clickedButton, emotion) {
+                const buttonRect = clickedButton.getBoundingClientRect();
+                const bottleRect = document.querySelector('.bottle-container').getBoundingClientRect();
+
+                // 计算位移
+                const deltaX = bottleRect.left + bottleRect.width/2 - buttonRect.left - buttonRect.width/2;
+                const deltaY = bottleRect.top + bottleRect.height/2 - buttonRect.top - buttonRect.height/2;
+
+                // 清理旧元素
+                document.querySelectorAll('.flying-button').forEach(btn => btn.remove());
+
+                // 创建飞行按钮
+                const flyingButton = this.createFlyingButton(clickedButton, buttonRect);
+
+                // 按钮淡出动画
+                this.fadeOutButtons();
+
+                // 执行飞行动画
+                this.animateFlyingButton(flyingButton, deltaX, deltaY, emotion);
+            }
+
+            // 创建飞行按钮元素
+            createFlyingButton(originalButton, rect) {
+                const flyingButton = originalButton.cloneNode(true);
+                Object.assign(flyingButton.style, {
+                    position: 'fixed',
+                    left: rect.left + 'px',
+                    top: rect.top + 'px',
+                    width: rect.width + 'px',
+                    height: rect.height + 'px',
+                    zIndex: '1000',
+                    pointerEvents: 'none'
+                });
+                flyingButton.classList.add('flying-button');
+                document.body.appendChild(flyingButton);
+                return flyingButton;
+            }
+
+            // 按钮淡出动画
+            fadeOutButtons() {
+                this.emotionButtons.forEach(btn => {
+                    btn.classList.add('emotion-fade-out');
+                    btn.style.pointerEvents = 'none';
+                });
+            }
+
+            // 执行飞行动画
+            animateFlyingButton(flyingButton, deltaX, deltaY, emotion) {
+                setTimeout(() => {
+                    flyingButton.style.transition = 'all 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+                    flyingButton.style.transform = `translate(${deltaX}px, ${deltaY}px) scale(0.1)`;
+                    flyingButton.style.opacity = '0';
+
+                    setTimeout(() => flyingButton.remove(), 800);
+                }, 10);
+
+                // 动画完成后的操作
+                setTimeout(() => this.completeEmotionEntry(emotion), 800);
+            }
+
+            // 完成情绪记录
+            completeEmotionEntry(emotion) {
+                this.currentFillLevel++;
+                this.updateBottleDisplay();
+
+                // 水波动效
+                this.bottleFillElement.classList.add('bottle-ripple');
+                setTimeout(() => this.bottleFillElement.classList.remove('bottle-ripple'), 600);
+
+                this.logEmotion(emotion);
+                this.showFeedback(`已觉察${emotion}情绪`, () => this.restoreButtons());
+            }
+
+            // 恢复按钮状态
+            restoreButtons() {
+                this.emotionButtons.forEach(btn => {
+                    btn.classList.remove('emotion-fade-out');
+                    btn.classList.add('emotion-fade-in');
+                    btn.style.pointerEvents = '';
+                });
+
+                setTimeout(() => {
+                    this.emotionButtons.forEach(btn => btn.classList.remove('emotion-fade-in'));
+                    this.isAnimating = false;
+                }, 500);
+            }
+
+            // 显示反馈信息
+            showFeedback(message, callback) {
+                this.feedbackElement.textContent = message;
+                this.feedbackElement.classList.add('show');
+
+                setTimeout(() => {
+                    this.feedbackElement.classList.remove('show');
+                    if (callback) callback();
+                }, 2000);
+            }
+
+            // 绑定清空按钮事件
+            bindEmptyButtonEvents() {
+                this.pressTimer = null;
+                this.isPressed = false;
+
+                const handlePressStart = (e) => {
+                    e.preventDefault();
+                    this.isPressed = true;
+
+                    this.emptyButton.classList.add('holding');
+                    this.breatheHintElement.classList.add('show');
+
+                    this.pressTimer = setTimeout(() => {
+                        if (this.isPressed) {
+                            this.breatheHintElement.classList.remove('show');
+                            this.emptyBottle();
+                        }
+                    }, 3000);
+                };
+
+                const handlePressEnd = () => {
+                    this.isPressed = false;
+                    clearTimeout(this.pressTimer);
+                    this.emptyButton.classList.remove('holding');
+                    this.breatheHintElement.classList.remove('show');
+                };
+
+                // 绑定事件
+                ['mousedown', 'touchstart'].forEach(event => {
+                    this.emptyButton.addEventListener(event, handlePressStart);
+                });
+
+                ['mouseup', 'mouseleave', 'touchend', 'touchcancel'].forEach(event => {
+                    this.emptyButton.addEventListener(event, handlePressEnd);
+                });
+            }
+        
+            // 清空瓶子
+            emptyBottle() {
+                const bottleContainer = document.querySelector('.bottle-container');
+                bottleContainer.classList.add('bottle-tilt');
+
+                setTimeout(() => {
+                    this.bottleFillElement.classList.add('bottle-empty-animation');
+                }, 300);
+
+                this.emptyButton.disabled = true;
+
+                setTimeout(() => {
+                    this.currentFillLevel = 0;
+                    localStorage.setItem('currentFillLevel', 0);
+                    bottleContainer.classList.remove('bottle-tilt');
+                    this.bottleFillElement.classList.remove('bottle-empty-animation');
+                    this.updateBottleDisplay();
+                    this.recordCompletedBottle();
+                    this.emptyButton.disabled = false;
+
+                    this.showFeedback('太好了，坏情绪都烟消云散了！');
+                }, 1200);
+            }
+
+            // 记录情绪
+            logEmotion(emotion) {
+                const now = new Date();
+                const dateString = now.toISOString().split('T')[0];
+                const timeString = now.toLocaleTimeString();
+
+                const emotionLogs = JSON.parse(localStorage.getItem('emotionLogs') || '[]');
+                emotionLogs.push({ date: dateString, time: timeString, emotion });
+                localStorage.setItem('emotionLogs', JSON.stringify(emotionLogs));
+
+                this.currentBottleEmotions.push(emotion);
+            }
+
+            // 记录完成的瓶子
+            recordCompletedBottle() {
+                const now = new Date();
+                const dateString = now.toISOString().split('T')[0];
+                const timeString = now.toLocaleTimeString();
+
+                const completedBottles = JSON.parse(localStorage.getItem('completedBottles') || '[]');
+                completedBottles.push({
+                    date: dateString,
+                    time: timeString,
+                    entries: this.currentBottleEmotions.map(emotion => ({
+                        emotion,
+                        date: dateString,
+                        time: timeString
+                    }))
+                });
+                localStorage.setItem('completedBottles', JSON.stringify(completedBottles));
+
+                this.currentBottleEmotions = [];
+                localStorage.setItem('currentBottleEmotions', JSON.stringify(this.currentBottleEmotions));
+            }
+
+            // 绑定帮助模态事件
+            bindHelpModalEvents() {
+                const helpIcon = document.getElementById('help-icon');
+                const helpModal = document.getElementById('help-modal');
+                const closeHelp = document.getElementById('close-help');
+
+                helpIcon.addEventListener('click', () => {
+                    helpModal.classList.remove('hidden');
+                });
+
+                closeHelp.addEventListener('click', () => {
+                    helpModal.classList.add('hidden');
+                });
+
+                helpModal.addEventListener('click', (e) => {
+                    if (e.target === helpModal) {
+                        helpModal.classList.add('hidden');
+                    }
+                });
+            }
+        }
+
+        // 初始化应用
+        new EmotionBottleApp();
+    </script>
+</body>
+</html>

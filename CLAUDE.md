@@ -9,12 +9,17 @@ This is "情绪小瓶子" (Emotion Bottle), a Chinese-language web application f
 ## Project Structure
 
 - `index.html` - Main application shell with iframe-based navigation and bottom tab bar
-- `home.html` - Core emotion recording interface with interactive bottle component
-- `history.html` - Dashboard showing emotion statistics, charts, and achievements
-- `records.html` - Detailed history view with filtering and data visualization
-- `achievements.html` - Achievement system showing user progress
-- `about.html` - Information about the app and donation options
-- `logo.png`, `static/wxzf.jpg`, `static/zfb.jpg` - Static assets (logo and payment QR codes)
+- `pages/` - All application pages loaded into iframe
+  - `home.html` - Core emotion recording interface with interactive bottle component
+  - `history.html` - Dashboard showing emotion statistics, charts, and achievements
+  - `records.html` - Detailed history view with filtering and data visualization
+  - `achievements.html` - Achievement system showing user progress
+  - `about.html` - Information about the app and donation options
+- `assets/` - Static assets organized by type
+  - `css/common.css` - Global styles and utility classes
+  - `js/common.js` - Shared JavaScript utilities
+  - `images/` - Logo and payment QR codes (logo.png, wxzf.jpg, zfb.jpg)
+- `config/tailwind-config.js` - Custom Tailwind CSS configuration
 
 ## Technology Stack
 
@@ -29,8 +34,9 @@ This is "情绪小瓶子" (Emotion Bottle), a Chinese-language web application f
 
 ### Navigation System
 - Single-page application using iframe-based navigation
-- Bottom tab bar in `index.html` controls content switching
-- Each page is a separate HTML file loaded into the main iframe
+- Bottom tab bar in `index.html` controls content switching via `AppNavigator` class
+- Each page is a separate HTML file in `pages/` directory loaded into the main iframe
+- Navigation state managed through URL updates and active tab styling
 
 ### Data Management
 Uses localStorage exclusively with these key data structures:
@@ -75,11 +81,12 @@ This is a static HTML application with no build tools, package managers, or deve
 - Test Chart.js fallback behavior when CDN is unavailable
 
 ### Code Style
-- Uses Tailwind CSS utility classes extensively
-- Custom CSS defined in `@layer utilities` blocks
-- JavaScript uses modern ES6+ features (localStorage, fetch, arrow functions)
+- Uses Tailwind CSS utility classes extensively with custom configuration in `config/tailwind-config.js`
+- Custom CSS defined in `@layer utilities` blocks within individual HTML files
+- JavaScript uses modern ES6+ features (localStorage, classes, arrow functions)
 - Chinese language strings throughout the codebase
-- No external JavaScript libraries except via CDN
+- No external JavaScript libraries except via CDN (Tailwind, Font Awesome, Chart.js)
+- Shared utilities in `assets/js/common.js` and `assets/css/common.css`
 
 ### Data Privacy
 - All data stored locally in browser localStorage
@@ -90,18 +97,23 @@ This is a static HTML application with no build tools, package managers, or deve
 ### Common Tasks
 
 To add a new emotion type:
-1. Update emotion arrays in `home.html`, `history.html`, `records.html`
+1. Update emotion arrays in `pages/home.html`, `pages/history.html`, `pages/records.html`
 2. Add corresponding colors and icons in utility functions
-3. Update achievement logic if needed
+3. Update achievement logic in `pages/achievements.html` if needed
 
 To modify the bottle capacity:
-1. Change `maxFillLevel` constant in `home.html`
-2. Update achievement thresholds if necessary
+1. Change `maxFillLevel` constant in `pages/home.html`
+2. Update achievement thresholds in `pages/achievements.html` if necessary
 
 To add new achievements:
-1. Define achievement logic in `history.html` and `achievements.html`
+1. Define achievement logic in `pages/history.html` and `pages/achievements.html`
 2. Update achievement count (currently 10) in progress calculations
 3. Add achievement card HTML and corresponding JavaScript
+
+To modify styling:
+1. Update Tailwind configuration in `config/tailwind-config.js` for theme-level changes
+2. Add page-specific styles in `@layer utilities` blocks within individual HTML files
+3. Shared styles go in `assets/css/common.css`
 
 ### Browser Support
 - Modern browsers with ES6+ support

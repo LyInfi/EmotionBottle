@@ -6,6 +6,14 @@
     <title>我的成就 - 情绪记录</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="../config/tailwind-config.js"></script>
+    <script>
+        if (window.tailwindConfig) {
+            tailwind.config = window.tailwindConfig;
+        }
+    </script>
+    <link rel="stylesheet" href="../assets/css/common.css">
+    <script src="../assets/js/common.js"></script>
     <style type="text/tailwindcss">
         @layer utilities {
             .achievement-card {
@@ -336,200 +344,253 @@
     </div>
 
     <script>
-        // 获取数据
-        function getAchievementData() {
-            const emotionLogs = JSON.parse(localStorage.getItem('emotionLogs') || '[]');
-            const completedBottles = JSON.parse(localStorage.getItem('completedBottles') || '[]');
-            
-            const totalRecords = emotionLogs.length;
-            const totalBottles = completedBottles.length;
-            
-            // 计算连续记录天数
-            const uniqueDates = [...new Set(emotionLogs.map(log => log.date))].sort();
-            let streak = 1;
-            let maxStreak = 1;
-            
-            for (let i = 1; i < uniqueDates.length; i++) {
-                const prevDate = new Date(uniqueDates[i-1]);
-                const currDate = new Date(uniqueDates[i]);
-                const diffTime = currDate - prevDate;
-                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-                
-                if (diffDays === 1) {
-                    streak++;
-                    maxStreak = Math.max(maxStreak, streak);
-                } else if (diffDays > 1) {
-                    streak = 1;
-                }
+        // 成就系统管理类
+        class AchievementManager {
+            constructor() {
+                this.totalAchievements = 10;
+                this.emotionMapping = {
+                    '焦虑': 'pureAnxiety',
+                    '紧张': 'pureTension',
+                    '不安': 'pureUnease',
+                    '孤独': 'pureLoneliness',
+                    '沮丧': 'pureDepression',
+                    '压力': 'purePressure'
+                };
+
+                this.achievementConfigs = {
+                    'emotion-novice': {
+                        checker: (data) => data.totalRecords >= 1,
+                        progressCalc: (data) => Math.min(data.totalRecords, 1),
+                        maxValue: 1,
+                        progressText: (progress, max) => `${progress}/${max}`
+                    },
+                    'bottle-collector': {
+                        checker: (data) => data.totalBottles >= 1,
+                        progressCalc: (data) => Math.min(data.totalBottles, 1),
+                        maxValue: 1,
+                        progressText: (progress, max) => `${progress}/${max}`
+                    },
+                    'consistent-recorder': {
+                        checker: (data) => data.streak >= 3,
+                        progressCalc: (data) => Math.min(data.streak, 3),
+                        maxValue: 3,
+                        progressText: (progress, max) => `${progress}/${max}`
+                    },
+                    'emotion-master': {
+                        checker: (data) => data.totalRecords >= 10 && data.totalBottles >= 5,
+                        progressCalc: (data) => ({ records: Math.min(data.totalRecords, 10), bottles: Math.min(data.totalBottles, 5) }),
+                        maxValue: { records: 10, bottles: 5 },
+                        progressText: (progress, max) => `${progress.records}/${max.records} 记录, ${progress.bottles}/${max.bottles} 瓶子`,
+                        percentageCalc: (data) => Math.min(((data.totalRecords / 10) + (data.totalBottles / 5)) / 2 * 100, 100)
+                    },
+                    'pure-anxiety': {
+                        checker: (data) => data.pureAnxiety,
+                        progressCalc: (data) => data.pureAnxiety ? 1 : 0,
+                        maxValue: 1,
+                        progressText: (progress, max) => `${progress}/${max}`
+                    },
+                    'pure-tension': {
+                        checker: (data) => data.pureTension,
+                        progressCalc: (data) => data.pureTension ? 1 : 0,
+                        maxValue: 1,
+                        progressText: (progress, max) => `${progress}/${max}`
+                    },
+                    'pure-unease': {
+                        checker: (data) => data.pureUnease,
+                        progressCalc: (data) => data.pureUnease ? 1 : 0,
+                        maxValue: 1,
+                        progressText: (progress, max) => `${progress}/${max}`
+                    },
+                    'pure-loneliness': {
+                        checker: (data) => data.pureLoneliness,
+                        progressCalc: (data) => data.pureLoneliness ? 1 : 0,
+                        maxValue: 1,
+                        progressText: (progress, max) => `${progress}/${max}`
+                    },
+                    'pure-depression': {
+                        checker: (data) => data.pureDepression,
+                        progressCalc: (data) => data.pureDepression ? 1 : 0,
+                        maxValue: 1,
+                        progressText: (progress, max) => `${progress}/${max}`
+                    },
+                    'pure-pressure': {
+                        checker: (data) => data.purePressure,
+                        progressCalc: (data) => data.purePressure ? 1 : 0,
+                        maxValue: 1,
+                        progressText: (progress, max) => `${progress}/${max}`
+                    }
+                };
             }
-            
-            // 计算单一情绪瓶子的完成情况
-            const pureEmotionAchievements = {
-                pureAnxiety: false,
-                pureTension: false,
-                pureUnease: false,
-                pureLoneliness: false,
-                pureDepression: false,
-                purePressure: false
-            };
-            
-            completedBottles.forEach(bottle => {
-                if (bottle.entries && bottle.entries.length > 0) {
-                    const emotions = bottle.entries.map(entry => entry.emotion);
-                    const uniqueEmotions = [...new Set(emotions)];
-                    
-                    if (uniqueEmotions.length === 1) {
-                        const emotion = uniqueEmotions[0];
-                        switch(emotion) {
-                            case '焦虑':
-                                pureEmotionAchievements.pureAnxiety = true;
-                                break;
-                            case '紧张':
-                                pureEmotionAchievements.pureTension = true;
-                                break;
-                            case '不安':
-                                pureEmotionAchievements.pureUnease = true;
-                                break;
-                            case '孤独':
-                                pureEmotionAchievements.pureLoneliness = true;
-                                break;
-                            case '沮丧':
-                                pureEmotionAchievements.pureDepression = true;
-                                break;
-                            case '压力':
-                                pureEmotionAchievements.purePressure = true;
-                                break;
-                        }
+
+            // 获取本地数据
+            getLocalData() {
+                return {
+                    emotionLogs: JSON.parse(localStorage.getItem('emotionLogs') || '[]'),
+                    completedBottles: JSON.parse(localStorage.getItem('completedBottles') || '[]')
+                };
+            }
+
+            // 获取成就数据
+            getAchievementData() {
+                const { emotionLogs, completedBottles } = this.getLocalData();
+
+                return {
+                    totalRecords: emotionLogs.length,
+                    totalBottles: completedBottles.length,
+                    streak: this.calculateStreakDays(emotionLogs),
+                    uniqueDates: [...new Set(emotionLogs.map(log => log.date))].length,
+                    ...this.calculatePureEmotionAchievements(completedBottles)
+                };
+            }
+
+            // 计算连续记录天数
+            calculateStreakDays(emotionLogs) {
+                if (emotionLogs.length === 0) return 0;
+
+                const uniqueDates = [...new Set(emotionLogs.map(log => log.date))].sort();
+                let streak = 1;
+                let maxStreak = 1;
+
+                for (let i = 1; i < uniqueDates.length; i++) {
+                    const prevDate = new Date(uniqueDates[i-1]);
+                    const currDate = new Date(uniqueDates[i]);
+                    const diffDays = Math.ceil((currDate - prevDate) / (1000 * 60 * 60 * 24));
+
+                    if (diffDays === 1) {
+                        streak++;
+                        maxStreak = Math.max(maxStreak, streak);
+                    } else if (diffDays > 1) {
+                        streak = 1;
                     }
                 }
-            });
-            
-            return {
-                totalRecords,
-                totalBottles,
-                streak: maxStreak,
-                uniqueDates: uniqueDates.length,
-                ...pureEmotionAchievements
-            };
+
+                return maxStreak;
+            }
+
+            // 计算单一情绪瓶子成就
+            calculatePureEmotionAchievements(completedBottles) {
+                const achievements = {
+                    pureAnxiety: false,
+                    pureTension: false,
+                    pureUnease: false,
+                    pureLoneliness: false,
+                    pureDepression: false,
+                    purePressure: false
+                };
+
+                completedBottles.forEach(bottle => {
+                    if (bottle.entries && bottle.entries.length > 0) {
+                        const emotions = bottle.entries.map(entry => entry.emotion);
+                        const uniqueEmotions = [...new Set(emotions)];
+
+                        if (uniqueEmotions.length === 1) {
+                            const emotion = uniqueEmotions[0];
+                            const achievementKey = this.emotionMapping[emotion];
+                            if (achievementKey) {
+                                achievements[achievementKey] = true;
+                            }
+                        }
+                    }
+                });
+
+                return achievements;
+            }
+
+            // 更新单个成就状态
+            updateSingleAchievement(achievementKey, data) {
+                const config = this.achievementConfigs[achievementKey];
+                if (!config) return false;
+
+                const isUnlocked = config.checker(data);
+                const progress = config.progressCalc(data);
+                const maxValue = config.maxValue;
+
+                // 更新进度文本
+                const progressElement = document.getElementById(`progress-${achievementKey.replace(/-/g, '-')}`);
+                if (progressElement) {
+                    progressElement.textContent = config.progressText(progress, maxValue);
+                }
+
+                // 更新进度条
+                const fillElement = document.getElementById(`fill-${achievementKey.replace(/-/g, '-')}`);
+                if (fillElement) {
+                    let percentage;
+                    if (config.percentageCalc) {
+                        percentage = config.percentageCalc(data);
+                    } else if (typeof progress === 'object') {
+                        // 处理复杂进度计算（如情绪大师）
+                        percentage = Math.min(((progress.records / maxValue.records) + (progress.bottles / maxValue.bottles)) / 2 * 100, 100);
+                    } else {
+                        percentage = typeof maxValue === 'number' ? (progress / maxValue) * 100 : progress * 100;
+                    }
+                    fillElement.style.width = `${percentage}%`;
+                }
+
+                // 更新状态图标
+                const statusElement = document.getElementById(`status-${achievementKey.replace(/-/g, '-')}`);
+                if (statusElement) {
+                    statusElement.innerHTML = isUnlocked ?
+                        '<i class="fas fa-unlock text-green-500"></i>' :
+                        '<i class="fas fa-lock text-gray-400"></i>';
+                }
+
+                // 更新成就卡片样式
+                const cardElement = document.querySelector(`[data-achievement="${achievementKey}"]`);
+                if (cardElement) {
+                    cardElement.classList.toggle('unlocked', isUnlocked);
+                }
+
+                return isUnlocked;
+            }
+
+            // 更新所有成就状态
+            updateAchievements() {
+                const data = this.getAchievementData();
+                let unlockedCount = 0;
+
+                // 遍历所有成就配置并更新
+                Object.keys(this.achievementConfigs).forEach(achievementKey => {
+                    if (this.updateSingleAchievement(achievementKey, data)) {
+                        unlockedCount++;
+                    }
+                });
+
+                // 更新总进度
+                this.updateOverallProgress(unlockedCount);
+            }
+
+            // 更新总体进度
+            updateOverallProgress(unlockedCount) {
+                const totalProgress = (unlockedCount / this.totalAchievements) * 100;
+
+                const elements = {
+                    count: document.getElementById('unlocked-count'),
+                    fill: document.getElementById('progress-fill'),
+                    text: document.getElementById('progress-text')
+                };
+
+                if (elements.count) elements.count.textContent = unlockedCount;
+                if (elements.fill) elements.fill.style.width = `${totalProgress}%`;
+                if (elements.text) elements.text.textContent = `${Math.round(totalProgress)}% 完成`;
+            }
         }
 
-        // 更新成就状态
+        // 全局实例
+        let achievementManager;
+
+        // 兼容性函数（保持向后兼容）
+        function getAchievementData() {
+            return achievementManager?.getAchievementData() || {};
+        }
+
         function updateAchievements() {
-            const data = getAchievementData();
-            let unlockedCount = 0;
-
-            // 情绪启蒙
-            const noviceProgress = Math.min(data.totalRecords, 1);
-            const noviceUnlocked = data.totalRecords >= 1;
-            document.getElementById('progress-novice').textContent = `${noviceProgress}/1`;
-            document.getElementById('fill-novice').style.width = `${noviceProgress * 100}%`;
-            document.getElementById('status-novice').innerHTML = noviceUnlocked ? 
-                '<i class="fas fa-unlock text-green-500"></i>' : '<i class="fas fa-lock text-gray-400"></i>';
-            document.querySelector('[data-achievement="emotion-novice"]').classList.toggle('unlocked', noviceUnlocked);
-            if (noviceUnlocked) unlockedCount++;
-
-            // 瓶满则溢
-            const bottleProgress = Math.min(data.totalBottles, 1);
-            const bottleUnlocked = data.totalBottles >= 1;
-            document.getElementById('progress-bottle').textContent = `${bottleProgress}/1`;
-            document.getElementById('fill-bottle').style.width = `${bottleProgress * 100}%`;
-            document.getElementById('status-bottle').innerHTML = bottleUnlocked ? 
-                '<i class="fas fa-unlock text-green-500"></i>' : '<i class="fas fa-lock text-gray-400"></i>';
-            document.querySelector('[data-achievement="bottle-collector"]').classList.toggle('unlocked', bottleUnlocked);
-            if (bottleUnlocked) unlockedCount++;
-
-            // 坚持不懈
-            const consistentProgress = Math.min(data.streak, 3);
-            const consistentUnlocked = data.streak >= 3;
-            document.getElementById('progress-consistent').textContent = `${consistentProgress}/3`;
-            document.getElementById('fill-consistent').style.width = `${(consistentProgress / 3) * 100}%`;
-            document.getElementById('status-consistent').innerHTML = consistentUnlocked ? 
-                '<i class="fas fa-unlock text-green-500"></i>' : '<i class="fas fa-lock text-gray-400"></i>';
-            document.querySelector('[data-achievement="consistent-recorder"]').classList.toggle('unlocked', consistentUnlocked);
-            if (consistentUnlocked) unlockedCount++;
-
-            // 情绪大师
-            const masterProgress = Math.min(data.totalRecords, 10);
-            const masterBottleProgress = Math.min(data.totalBottles, 5);
-            const masterUnlocked = data.totalRecords >= 10 && data.totalBottles >= 5;
-            document.getElementById('progress-master').textContent = `${masterProgress}/10 记录, ${masterBottleProgress}/5 瓶子`;
-            const masterPercentage = Math.min(((data.totalRecords / 10) + (data.totalBottles / 5)) / 2 * 100, 100);
-            document.getElementById('fill-master').style.width = `${masterPercentage}%`;
-            document.getElementById('status-master').innerHTML = masterUnlocked ? 
-                '<i class="fas fa-unlock text-green-500"></i>' : '<i class="fas fa-lock text-gray-400"></i>';
-            document.querySelector('[data-achievement="emotion-master"]').classList.toggle('unlocked', masterUnlocked);
-            if (masterUnlocked) unlockedCount++;
-
-            // 纯焦虑瓶
-            const pureAnxietyProgress = data.pureAnxiety ? 1 : 0;
-            const pureAnxietyUnlocked = data.pureAnxiety;
-            document.getElementById('progress-pure-anxiety').textContent = `${pureAnxietyProgress}/1`;
-            document.getElementById('fill-pure-anxiety').style.width = `${pureAnxietyProgress * 100}%`;
-            document.getElementById('status-pure-anxiety').innerHTML = pureAnxietyUnlocked ? 
-                '<i class="fas fa-unlock text-green-500"></i>' : '<i class="fas fa-lock text-gray-400"></i>';
-            document.querySelector('[data-achievement="pure-anxiety"]').classList.toggle('unlocked', pureAnxietyUnlocked);
-            if (pureAnxietyUnlocked) unlockedCount++;
-
-            // 纯紧张瓶
-            const pureTensionProgress = data.pureTension ? 1 : 0;
-            const pureTensionUnlocked = data.pureTension;
-            document.getElementById('progress-pure-tension').textContent = `${pureTensionProgress}/1`;
-            document.getElementById('fill-pure-tension').style.width = `${pureTensionProgress * 100}%`;
-            document.getElementById('status-pure-tension').innerHTML = pureTensionUnlocked ? 
-                '<i class="fas fa-unlock text-green-500"></i>' : '<i class="fas fa-lock text-gray-400"></i>';
-            document.querySelector('[data-achievement="pure-tension"]').classList.toggle('unlocked', pureTensionUnlocked);
-            if (pureTensionUnlocked) unlockedCount++;
-
-            // 纯不安瓶
-            const pureUneaseProgress = data.pureUnease ? 1 : 0;
-            const pureUneaseUnlocked = data.pureUnease;
-            document.getElementById('progress-pure-unease').textContent = `${pureUneaseProgress}/1`;
-            document.getElementById('fill-pure-unease').style.width = `${pureUneaseProgress * 100}%`;
-            document.getElementById('status-pure-unease').innerHTML = pureUneaseUnlocked ? 
-                '<i class="fas fa-unlock text-green-500"></i>' : '<i class="fas fa-lock text-gray-400"></i>';
-            document.querySelector('[data-achievement="pure-unease"]').classList.toggle('unlocked', pureUneaseUnlocked);
-            if (pureUneaseUnlocked) unlockedCount++;
-
-            // 纯孤独瓶
-            const pureLonelinessProgress = data.pureLoneliness ? 1 : 0;
-            const pureLonelinessUnlocked = data.pureLoneliness;
-            document.getElementById('progress-pure-loneliness').textContent = `${pureLonelinessProgress}/1`;
-            document.getElementById('fill-pure-loneliness').style.width = `${pureLonelinessProgress * 100}%`;
-            document.getElementById('status-pure-loneliness').innerHTML = pureLonelinessUnlocked ? 
-                '<i class="fas fa-unlock text-green-500"></i>' : '<i class="fas fa-lock text-gray-400"></i>';
-            document.querySelector('[data-achievement="pure-loneliness"]').classList.toggle('unlocked', pureLonelinessUnlocked);
-            if (pureLonelinessUnlocked) unlockedCount++;
-
-            // 纯沮丧瓶
-            const pureDepressionProgress = data.pureDepression ? 1 : 0;
-            const pureDepressionUnlocked = data.pureDepression;
-            document.getElementById('progress-pure-depression').textContent = `${pureDepressionProgress}/1`;
-            document.getElementById('fill-pure-depression').style.width = `${pureDepressionProgress * 100}%`;
-            document.getElementById('status-pure-depression').innerHTML = pureDepressionUnlocked ? 
-                '<i class="fas fa-unlock text-green-500"></i>' : '<i class="fas fa-lock text-gray-400"></i>';
-            document.querySelector('[data-achievement="pure-depression"]').classList.toggle('unlocked', pureDepressionUnlocked);
-            if (pureDepressionUnlocked) unlockedCount++;
-
-            // 纯压力瓶
-            const purePressureProgress = data.purePressure ? 1 : 0;
-            const purePressureUnlocked = data.purePressure;
-            document.getElementById('progress-pure-pressure').textContent = `${purePressureProgress}/1`;
-            document.getElementById('fill-pure-pressure').style.width = `${purePressureProgress * 100}%`;
-            document.getElementById('status-pure-pressure').innerHTML = purePressureUnlocked ? 
-                '<i class="fas fa-unlock text-green-500"></i>' : '<i class="fas fa-lock text-gray-400"></i>';
-            document.querySelector('[data-achievement="pure-pressure"]').classList.toggle('unlocked', purePressureUnlocked);
-            if (purePressureUnlocked) unlockedCount++;
-
-            // 更新总进度
-            const totalProgress = (unlockedCount / 10) * 100;
-            document.getElementById('unlocked-count').textContent = unlockedCount;
-            document.getElementById('progress-fill').style.width = `${totalProgress}%`;
-            document.getElementById('progress-text').textContent = `${Math.round(totalProgress)}% 完成`;
+            achievementManager?.updateAchievements();
         }
 
-        // 页面加载时更新
+        // 页面初始化
         document.addEventListener('DOMContentLoaded', function() {
-            updateAchievements();
+            achievementManager = new AchievementManager();
+            achievementManager.updateAchievements();
         });
     </script>
 </body>

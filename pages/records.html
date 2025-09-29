@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>情绪记录 - 历史详情</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="../config/tailwind-config.js"></script>
+    <script>
+        if (window.tailwindConfig) {
+            tailwind.config = window.tailwindConfig;
+        }
+    </script>
+    <link rel="stylesheet" href="../assets/css/common.css">
+    <script src="../assets/js/common.js"></script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            /* 通用组件样式 */
+            .emotion-tag {
+                @apply text-xs font-medium px-2.5 py-0.5 rounded-full mr-2 mb-2;
+            }
+
+            /* 历史记录相关样式 */
+            .history-item {
+                @apply bg-white rounded-lg shadow-sm p-4 mb-3 transition-all duration-200 hover:shadow-md;
+            }
+            .date-section {
+                @apply mb-6;
+            }
+            .date-header {
+                @apply text-lg font-semibold text-gray-800 mb-3 pb-2 border-b border-gray-200;
+            }
+            .record-card {
+                @apply bg-white rounded-lg shadow-sm p-4 mb-4 transition-all duration-200 hover:shadow-md;
+            }
+            .emotion-icon {
+                @apply w-10 h-10 rounded-full flex items-center justify-center text-lg;
+            }
+
+            /* 回到顶部按钮样式 */
+            .back-to-top {
+                position: fixed;
+                bottom: 30px;
+                right: 30px;
+                width: 50px;
+                height: 50px;
+                background-color: #4F46E5;
+                color: white;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                cursor: pointer;
+                opacity: 0;
+                visibility: hidden;
+                transition: all 0.3s ease;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+                z-index: 1000;
+            }
+
+            .back-to-top.show {
+                opacity: 1;
+                visibility: visible;
+            }
+
+            .back-to-top:hover {
+                background-color: #3730A3;
+                transform: translateY(-2px);
+            }
+
+            .back-to-top:active {
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <!-- 顶部导航 -->
+    <div class="bg-white shadow-sm">
+        <div class="max-w-6xl mx-auto px-4 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center">
+                    <a href="history.html" class="text-gray-600 hover:text-gray-800 mr-4">
+                        <i class="fas fa-arrow-left"></i>
+                    </a>
+                    <h1 class="text-xl font-semibold text-gray-800">情绪记录历史</h1>
+                </div>
+                <div class="text-sm text-gray-500">
+                    <span id="total-count">0</span> 条记录
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 日期选择和筛选区域 -->
+        <div class="max-w-6xl mx-auto px-4 py-6">
+            <div class="bg-white rounded-lg shadow-sm p-4 mb-6">
+                <div class="flex flex-col sm:flex-row gap-4">
+                    <div class="flex-1">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">选择日期</label>
+                        <input type="date" id="date-picker" 
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+                    </div>
+                    <div class="flex gap-2 items-end">
+                        <select id="emotion-filter" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
+                            <option value="">全部情绪</option>
+                            <option value="焦虑">焦虑</option>
+                            <option value="紧张">紧张</option>
+                            <option value="不安">不安</option>
+                            <option value="孤独">孤独</option>
+                            <option value="沮丧">沮丧</option>
+                            <option value="压力">压力</option>
+                        </select>
+                        <button id="clear-date" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors">
+                            清除日期
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+        <!-- 统计概览 -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+            <div class="bg-white rounded-lg shadow-sm p-4">
+                <div class="text-2xl font-bold text-indigo-600" id="stat-total">0</div>
+                <div class="text-sm text-gray-600">总记录数</div>
+            </div>
+            <div class="bg-white rounded-lg shadow-sm p-4">
+                <div class="text-2xl font-bold text-green-600" id="stat-bottles">0</div>
+                <div class="text-sm text-gray-600">完成瓶子</div>
+            </div>
+            <div class="bg-white rounded-lg shadow-sm p-4">
+                <div class="text-2xl font-bold text-purple-600" id="stat-days">0</div>
+                <div class="text-sm text-gray-600">总记录（天）</div>
+            </div>
+            <div class="bg-white rounded-lg shadow-sm p-4">
+                <div class="text-2xl font-bold text-orange-600" id="stat-streak">0</div>
+                <div class="text-sm text-gray-600">最长连续记录（天）</div>
+            </div>
+        </div>
+
+        <!-- 情绪分布图表 -->
+        <div class="bg-white rounded-lg shadow-sm p-4 mb-6">
+            <h2 class="text-lg font-semibold text-gray-800 mb-4">情绪分布</h2>
+            <div class="h-64">
+                <canvas id="emotionChart"></canvas>
+            </div>
+        </div>
+
+        <!-- 历史记录列表 -->
+        <div id="records-container">
+            <!-- 记录将通过JavaScript动态生成 -->
+        </div>
+
+        <!-- 空状态 -->
+        <div id="empty-state" class="text-center py-12 hidden">
+            <i class="fas fa-search text-6xl text-gray-300 mb-4"></i>
+            <h3 class="text-lg font-medium text-gray-600 mb-2">没有找到记录</h3>
+            <p class="text-gray-500">尝试调整搜索条件或筛选器</p>
+        </div>
+    </div>
+
+    <!-- 回到顶部按钮 -->
+    <div class="back-to-top" id="backToTop">
+        <i class="fas fa-chevron-up"></i>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js"></script>
+    <script>
+        // 记录页面管理类
+        class RecordsPageManager {
+            constructor() {
+                this.allRecords = [];
+                this.filteredRecords = [];
+                this.chartInstance = null;
+                this.emotionConfig = {
+                    colors: {
+                        '焦虑': { bg: 'bg-red-100', text: 'text-red-600', chart: '#EF4444' },
+                        '紧张': { bg: 'bg-orange-100', text: 'text-orange-600', chart: '#F97316' },
+                        '不安': { bg: 'bg-yellow-100', text: 'text-yellow-600', chart: '#EAB308' },
+                        '孤独': { bg: 'bg-purple-100', text: 'text-purple-600', chart: '#8B5CF6' },
+                        '沮丧': { bg: 'bg-blue-100', text: 'text-blue-600', chart: '#3B82F6' },
+                        '压力': { bg: 'bg-indigo-100', text: 'text-indigo-600', chart: '#6366F1' }
+                    },
+                    icons: {
+                        '焦虑': '<i class="fas fa-fire-alt"></i>',
+                        '紧张': '<i class="fas fa-heartbeat"></i>',
+                        '不安': '<i class="fas fa-exclamation-triangle"></i>',
+                        '孤独': '<i class="fas fa-user"></i>',
+                        '沮丧': '<i class="fas fa-cloud-rain"></i>',
+                        '压力': '<i class="fas fa-bolt"></i>'
+                    }
+                };
+                this.init();
+            }
+
+            init() {
+                this.loadRecords();
+                this.setupEventListeners();
+            }
+
+            // 获取本地数据
+            getLocalData() {
+                return {
+                    emotionLogs: JSON.parse(localStorage.getItem('emotionLogs') || '[]'),
+                    completedBottles: JSON.parse(localStorage.getItem('completedBottles') || '[]')
+                };
+            }
+
+            // 加载记录数据
+            loadRecords() {
+                const { emotionLogs } = this.getLocalData();
+                this.allRecords = emotionLogs;
+                this.filteredRecords = [...this.allRecords];
+
+                this.updateStats();
+                this.renderEmotionChart();
+                this.renderRecords();
+            }
+
+            // 更新统计信息
+            updateStats() {
+                const { completedBottles } = this.getLocalData();
+                const uniqueDays = [...new Set(this.allRecords.map(record => record.date))].length;
+                const streakDays = this.calculateStreakDays();
+
+                const stats = {
+                    'stat-total': this.allRecords.length,
+                    'stat-days': uniqueDays,
+                    'stat-bottles': completedBottles.length,
+                    'stat-streak': streakDays,
+                    'total-count': this.filteredRecords.length
+                };
+
+                Object.entries(stats).forEach(([id, value]) => {
+                    document.getElementById(id).textContent = value;
+                });
+            }
+
+            // 计算连续记录天数
+            calculateStreakDays() {
+                if (this.allRecords.length === 0) return 0;
+
+                const dates = [...new Set(this.allRecords.map(log => log.date))].sort();
+                let streak = 1;
+                let maxStreak = 1;
+
+                for (let i = 1; i < dates.length; i++) {
+                    const prevDate = new Date(dates[i-1]);
+                    const currDate = new Date(dates[i]);
+                    const diffDays = Math.ceil((currDate - prevDate) / (1000 * 60 * 60 * 24));
+
+                    if (diffDays === 1) {
+                        streak++;
+                        maxStreak = Math.max(maxStreak, streak);
+                    } else if (diffDays > 1) {
+                        streak = 1;
+                    }
+                }
+                return maxStreak;
+            }
+
+            // 渲染情绪图表
+            renderEmotionChart() {
+                const ctx = document.getElementById('emotionChart').getContext('2d');
+                const recordsToChart = this.filteredRecords.length > 0 ? this.filteredRecords : this.allRecords;
+
+                // 销毁旧图表
+                if (this.chartInstance) {
+                    this.chartInstance.destroy();
+                }
+
+                const emotionData = this.aggregateEmotionData(recordsToChart);
+
+                // 如果没有数据，显示空状态
+                if (Object.keys(emotionData).length === 0) {
+                    this.showChartPlaceholder(ctx);
+                    return;
+                }
+
+                this.createChart(ctx, emotionData);
+            }
+
+            // 聚合情绪数据
+            aggregateEmotionData(records) {
+                return records.reduce((acc, record) => {
+                    acc[record.emotion] = (acc[record.emotion] || 0) + 1;
+                    return acc;
+                }, {});
+            }
+
+            // 显示图表占位符
+            showChartPlaceholder(ctx) {
+                ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+                ctx.font = '14px sans-serif';
+                ctx.fillStyle = '#9CA3AF';
+                ctx.textAlign = 'center';
+                ctx.fillText('暂无数据', ctx.canvas.width / 2, ctx.canvas.height / 2);
+            }
+
+            // 创建图表
+            createChart(ctx, emotionData) {
+                const emotions = Object.keys(emotionData);
+                const chartColors = emotions.map(emotion =>
+                    this.emotionConfig.colors[emotion]?.chart || '#9CA3AF'
+                );
+
+                this.chartInstance = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: emotions,
+                        datasets: [{
+                            label: '记录数量',
+                            data: Object.values(emotionData),
+                            backgroundColor: chartColors,
+                            borderColor: chartColors,
+                            borderWidth: 1,
+                            barPercentage: 0.6,
+                            categoryPercentage: 0.7
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    stepSize: 1,
+                                    precision: 0
+                                },
+                                grid: {
+                                    display: true,
+                                    drawBorder: false
+                                }
+                            },
+                            x: {
+                                grid: { display: false }
+                            }
+                        }
+                    }
+                });
+            }
+
+            // 渲染记录列表
+            renderRecords() {
+                const container = document.getElementById('records-container');
+                const emptyState = document.getElementById('empty-state');
+
+                if (this.filteredRecords.length === 0) {
+                    container.innerHTML = '';
+                    emptyState.classList.remove('hidden');
+                    return;
+                }
+
+                emptyState.classList.add('hidden');
+                const groupedRecords = this.groupRecordsByDate();
+                const html = this.generateRecordsHTML(groupedRecords);
+                container.innerHTML = html;
+            }
+
+            // 按日期分组记录
+            groupRecordsByDate() {
+                const grouped = this.filteredRecords.reduce((acc, record) => {
+                    if (!acc[record.date]) {
+                        acc[record.date] = [];
+                    }
+                    acc[record.date].push(record);
+                    return acc;
+                }, {});
+
+                // 对每个日期内的记录按时间排序（从晚到早）
+                Object.values(grouped).forEach(records => {
+                    records.sort((a, b) => b.time.localeCompare(a.time));
+                });
+
+                return grouped;
+            }
+
+            // 生成记录HTML
+            generateRecordsHTML(groupedRecords) {
+                const sortedDates = Object.keys(groupedRecords).sort((a, b) => new Date(b) - new Date(a));
+
+                return sortedDates.map(date => {
+                    const formattedDate = new Date(date).toLocaleDateString('zh-CN', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric',
+                        weekday: 'long'
+                    });
+
+                    const records = groupedRecords[date];
+                    const recordsHTML = records.map(record => this.generateRecordCardHTML(record)).join('');
+
+                    return `
+                        <div class="date-section">
+                            <div class="date-header">
+                                ${formattedDate}
+                                <span class="text-sm font-normal text-gray-500">(${records.length}条记录)</span>
+                            </div>
+                            <div class="space-y-3">
+                                ${recordsHTML}
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            }
+
+            // 生成记录卡片HTML
+            generateRecordCardHTML(record) {
+                const colorClass = this.getEmotionColorClass(record.emotion);
+                const icon = this.getEmotionIcon(record.emotion);
+                const displayDate = new Date(record.date).toLocaleDateString('zh-CN');
+
+                return `
+                    <div class="record-card">
+                        <div class="flex items-start space-x-4">
+                            <div class="emotion-icon ${colorClass}">
+                                ${icon}
+                            </div>
+                            <div class="flex-1">
+                                <div class="flex items-center justify-between">
+                                    <h3 class="font-medium text-gray-800">${record.emotion}</h3>
+                                    <span class="text-sm text-gray-500">${record.time}</span>
+                                </div>
+                                <p class="text-sm text-gray-600 mt-1">
+                                    记录于 ${displayDate}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // 获取情绪颜色类
+            getEmotionColorClass(emotion) {
+                const config = this.emotionConfig.colors[emotion];
+                return config ? `${config.bg} ${config.text}` : 'bg-gray-100 text-gray-600';
+            }
+
+            // 获取情绪图标
+            getEmotionIcon(emotion) {
+                return this.emotionConfig.icons[emotion] || '<i class="fas fa-meh"></i>';
+            }
+
+            // 设置事件监听器
+            setupEventListeners() {
+                const elements = {
+                    datePicker: document.getElementById('date-picker'),
+                    emotionFilter: document.getElementById('emotion-filter'),
+                    clearDateBtn: document.getElementById('clear-date'),
+                    backToTopBtn: document.getElementById('backToTop')
+                };
+
+                // 筛选功能
+                elements.datePicker.addEventListener('change', () => this.filterRecords());
+                elements.emotionFilter.addEventListener('change', () => this.filterRecords());
+                elements.clearDateBtn.addEventListener('click', () => {
+                    elements.datePicker.value = '';
+                    this.filterRecords();
+                });
+
+                // 回到顶部功能
+                elements.backToTopBtn.addEventListener('click', () => {
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                });
+
+                // 监听滚动事件
+                window.addEventListener('scroll', () => {
+                    const showThreshold = 300;
+                    elements.backToTopBtn.classList.toggle('show', window.pageYOffset > showThreshold);
+                });
+            }
+
+            // 筛选记录
+            filterRecords() {
+                const selectedDate = document.getElementById('date-picker').value;
+                const emotionFilter = document.getElementById('emotion-filter').value;
+
+                this.filteredRecords = this.allRecords.filter(record => {
+                    const matchesDate = !selectedDate || record.date === selectedDate;
+                    const matchesEmotion = !emotionFilter || record.emotion === emotionFilter;
+                    return matchesDate && matchesEmotion;
+                });
+
+                this.renderRecords();
+                this.renderEmotionChart();
+                document.getElementById('total-count').textContent = this.filteredRecords.length;
+            }
+        }
+
+        // 全局实例和兼容性函数
+        let recordsManager;
+
+        function getEmotionColorClass(emotion) {
+            return recordsManager?.getEmotionColorClass(emotion) || 'bg-gray-100 text-gray-600';
+        }
+
+        function getEmotionIcon(emotion) {
+            return recordsManager?.getEmotionIcon(emotion) || '<i class="fas fa-meh"></i>';
+        }
+
+        // 初始化页面
+        document.addEventListener('DOMContentLoaded', function() {
+            recordsManager = new RecordsPageManager();
+        });
+    </script>
+</body>
+</html>

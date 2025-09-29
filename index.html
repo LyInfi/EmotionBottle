@@ -6,84 +6,130 @@
     <title>情绪小瓶子</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="config/tailwind-config.js"></script>
     <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        primary: '#4F46E5',
-                        secondary: '#7C3AED',
-                        accent: '#EC4899',
-                        neutral: '#64748B',
-                        'neutral-light': '#F1F5F9',
-                        'neutral-dark': '#1E293B',
-                    },
-                    fontFamily: {
-                        sans: ['PingFang SC', 'Helvetica Neue', 'Arial', 'sans-serif'],
-                    },
-                }
-            }
+        if (window.tailwindConfig) {
+            tailwind.config = window.tailwindConfig;
         }
     </script>
-    <style type="text/tailwindcss">
-        @layer utilities {
-            .content-auto {
-                content-visibility: auto;
-            }
-            .bottle-fill {
-                transition: height 0.5s ease-in-out;
-            }
-            .tabbar-item-active {
-                color: #4F46E5;
-            }
-            .emotion-btn {
-                @apply rounded-full py-3 px-6 m-2 text-white shadow-lg transform transition-all duration-300 hover:scale-105 active:scale-95;
-            }
-        }
-    </style>
+    <link rel="stylesheet" href="assets/css/common.css">
+    <script src="assets/js/common.js"></script>
 </head>
 <body class="bg-gray-50 font-sans overflow-hidden h-screen flex flex-col">
-    <!-- 顶部状态栏 -->
-    <!-- <div class="bg-white h-14 flex items-center justify-center border-b border-gray-200 relative">
-        <div class="absolute left-4 text-neutral-dark">
-            <i class="fas fa-sign-in-alt"></i>
-        </div>
-        <h1 class="text-lg font-medium text-neutral-dark">情绪小瓶子</h1>
-        <div class="absolute right-4 text-neutral-dark">
-            <i class="fas fa-cog"></i>
-        </div>
-    </div> -->
 
     <!-- 主内容区 - 使用iframe嵌入其他页面 -->
     <div class="flex-1 overflow-hidden relative">
-        <iframe id="main-content" src="home.html" class="w-full h-full border-0"></iframe>
+        <iframe id="main-content" src="pages/home.html" class="w-full h-full border-0"></iframe>
     </div>
 
     <!-- 底部TabBar -->
     <div class="bg-white border-t border-gray-200 h-16 flex items-center justify-around">
-        <div class="tabbar-item flex flex-col items-center justify-center text-neutral tabbar-item-active" onclick="navigateTo('home.html', this)">
+        <div class="tabbar-item tabbar-item-active" data-page="pages/home.html">
             <i class="fas fa-wine-bottle text-xl"></i>
             <span class="text-xs mt-1">瓶子</span>
         </div>
-        <div class="tabbar-item flex flex-col items-center justify-center text-neutral" onclick="navigateTo('history.html', this)">
+        <div class="tabbar-item" data-page="pages/history.html">
             <i class="fas fa-history text-xl"></i>
             <span class="text-xs mt-1">记录</span>
         </div>
     </div>
 
     <script>
-        // 导航功能
-        function navigateTo(page, element) {
-            // 更新iframe src
-            document.getElementById('main-content').src = page;
-            
-            // 更新TabBar选中状态
-            const tabItems = document.querySelectorAll('.tabbar-item');
-            tabItems.forEach(item => {
-                item.classList.remove('tabbar-item-active');
-            });
-            element.classList.add('tabbar-item-active');
+        // 主应用导航管理类
+        class AppNavigator {
+            constructor() {
+                this.mainContent = null;
+                this.tabItems = [];
+                this.currentPage = 'home.html';
+                this.init();
+            }
+
+            init() {
+                this.mainContent = document.getElementById('main-content');
+                this.tabItems = document.querySelectorAll('.tabbar-item');
+                this.bindEvents();
+                this.handleIframeErrors();
+            }
+
+            // 绑定事件
+            bindEvents() {
+                this.tabItems.forEach(item => {
+                    item.addEventListener('click', (e) => {
+                        const page = item.getAttribute('data-page');
+                        if (page) {
+                            this.navigateTo(page, item);
+                        }
+                    });
+                });
+            }
+
+            // 导航到指定页面
+            navigateTo(page, targetElement) {
+                try {
+                    // 更新iframe src
+                    if (this.mainContent) {
+                        this.mainContent.src = page;
+                        this.currentPage = page;
+                    }
+
+                    // 更新TabBar选中状态
+                    this.updateTabBarState(targetElement);
+                } catch (error) {
+                    console.error('导航失败:', error);
+                    this.showError('页面加载失败，请重试');
+                }
+            }
+
+            // 更新TabBar状态
+            updateTabBarState(activeElement) {
+                this.tabItems.forEach(item => {
+                    item.classList.remove('tabbar-item-active');
+                });
+                if (activeElement) {
+                    activeElement.classList.add('tabbar-item-active');
+                }
+            }
+
+            // 处理iframe加载错误
+            handleIframeErrors() {
+                if (this.mainContent) {
+                    this.mainContent.addEventListener('error', () => {
+                        this.showError('页面加载失败');
+                    });
+
+                    this.mainContent.addEventListener('load', () => {
+                        console.log(`页面加载成功: ${this.currentPage}`);
+                    });
+                }
+            }
+
+            // 显示错误信息
+            showError(message) {
+                // 简单的错误提示，可以扩展为更复杂的UI
+                console.error(message);
+                // 可以在这里添加Toast或其他错误显示机制
+            }
+
+            // 获取当前页面
+            getCurrentPage() {
+                return this.currentPage;
+            }
         }
+
+        // 全局实例
+        let appNavigator;
+
+        // 兼容性函数（保持向后兼容）
+        function navigateTo(page, element) {
+            if (appNavigator) {
+                appNavigator.navigateTo(page, element);
+            }
+        }
+
+        // 初始化应用
+        document.addEventListener('DOMContentLoaded', function() {
+            appNavigator = new AppNavigator();
+        });
     </script>
 </body>
 </html>
